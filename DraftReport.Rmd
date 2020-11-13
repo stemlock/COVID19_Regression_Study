@@ -1,0 +1,13 @@
+---
+title: "Draft Report"
+author: "203 Section 6, Team 1"
+output: pdf_document
+---
+
+2. A Model Building Process
+
+  The primary variable of interest will be the total covid case rate per 100,000 residents. The covid case rate was judged to give a better understanding than the death rate because of the potential for other, unrecorded variables that could be correlated with a person dying from covid versus just becoming infected. For example, the availability and quality of medical care in a state may impact its ability to keep covid infected patients alive, although this is not represented in the data set. The health status of the residents in one state compared to another state may also affect the death rate, but this is also not included. Instead, the covid infection rate was chosen so that these other variables which may correlate with the death rate would not have to be considered. Finally, the covid infection rate was also chosen on a per capita basis so that potential total population differences between states would already be accounted for in the variable. 
+  
+  The modeling goal for the covid case rate will be one of description. A modelf of causation may be created out of this model if potential causal relationships are examined and incorporated into the model's structure. This may later be expanded to predict the covid case rate in the past seven days in order for a state to use it to potentially judge what effect a modeled policy may have on its current situation. 
+  
+  There are two broad groups of covariates which will be examined in building the model. The first is demographic information on the state, such as population density, the unemployment rate, or rate of people living in poverty. The second general group is that of policy decisions taken by the state, such as mask mandates, legal enforcements of policies, or the political party of the state's governor (which is assumed to be related to the policies they may support). Problematic covariates would include any of the other direct measures of covid severity in the state, such as total infection rate not on a per capita basis or death rates. It can be assumed that these variables would be colinear with the primary variable of interest since more covid cases per capita would imply more total cases not adjusted for population or be strongly correlated with more deaths per capita, etc. 
