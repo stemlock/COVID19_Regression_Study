@@ -8,6 +8,13 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+```{r lib,include=FALSE}
+library(lmtest)
+library(sandwich)
+library(tidyverse)
+library(magrittr)
+
+```
 
 # Introduction
 
@@ -40,6 +47,23 @@ The dataset includes:
 3. General state-level characteristics.
 
 If you want to, you are allowed to add extra variables from external sources.  However, this is not necessary, and we will not assign any bonus points to teams that derive unique data, as our focus is on statistics and statistical writing.
+
+```{r variables}
+df <- read.csv("covid-19.csv", header = TRUE)
+
+df<-df%>%
+  rename(case_rate_100k = 'Case.Rate.per.100000',
+         population_density = 'Population.density.per.square.miles',
+         white_pct = 'White...of.Cases',
+         black_pct = 'Black...of.Cases',
+         hispanic_pct = 'Hispanic...of.Cases',
+         other_pct = 'Other...of.Cases',
+         mask_public='Mandate.face.mask.use.by.all.individuals.in.public.spaces',
+         mask_legal='No.legal.enforcement.of.face.mask.mandate') %>%
+  select(case_rate_100k, population_density, white_pct, black_pct, hispanic_pct, 
+         other_pct, mask_public, mask_legal)
+head(df)
+```
 
 # Final Project Components {.tabset}
 
@@ -126,6 +150,11 @@ In the cross-team review, you will provide feedback on another team's draft repo
     - **Model 1** Does this model only include key explanatory variables?  Do the variables make sense given the measurement goals?  Did the team apply reasonable transformations to these variables, to capture the nature of the relationships?
     - **Model 2** Does this model represent a balanced approach, including variables that advance modeling goals without causing major issues?  Does the model succeed in reducing standard errors of the key variables compared to the base model?  Does it capture major non-linearities in the joint distribution of the variables?
     - **Model 3**  Does this model represent a maximalist approach, erring on the side of including most variables?  Is it still a reasonable model?  Are there any variables that are outcomes, and should therefore still be excluded?  Is there too much multicolinearity, to the point that the key causal effects cannot be measured?
+    
+```{r}
+
+```
+
     
 - **Plots, Figures, and Table** Do the plots, figures and tables that the team has chosen to include successfully move forward the argument that they are making? Do they have a good ratio of "Information to Ink" (Tufte)? Has the team chosen the most effective method (a table or a chart) to display their evidence? Is that table or chart as communicative as it can be? Is every single plot, figure, or table that is included in the report referenced in the main text?
 
