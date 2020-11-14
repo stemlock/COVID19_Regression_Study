@@ -1,0 +1,285 @@
+---
+title: "Untitled"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(lmtest)
+library(sandwich)
+library(stargazer)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+D = read.csv("covid-19.csv")
+```
+## List of Demographic Variables  
+COVID-19 Cases by Race/Ethnicity:
+ - white % of Total Population,
+ - Black % of Total Population, 
+ - Hispanic % of Total Population, 
+ - Other % of Total Population
+ 
+ 
+State Characteristics:
+ - Governor,       
+ - Population density per square miles, 
+ - Population 2018, 
+ - Nonelderly Adults Who Have A Pre-Existing Condition
+ - Percent at risk for serious illness due to COVID	
+ - All-cause deaths 2018, 
+ - Number Homeless (2019), 
+ - Medicaid Expenditures as a Percent of Total State Expenditures by Fund, 
+ - Life Expectancy at Birth (years),
+ - Percent Unemployed (2018)
+ - Percent living under the federal poverty line (2018), 
+ - Weekly UI maximum amount with extra stimulus (through July 31, 2020) (dollars), 
+ - Median Annual Household Income
+ 
+Demographics:
+	➤Children 0-18, ➤Adults 19-25, ➤Adults 26-34,  ➤Adults 35-54, ➤Adults 55-64, ➤65+
+
+
+## Data Explorary
+
+a) Varialbe of Case Rate per 100000 is of nearly normal distribution. 
+
+```{r}
+summary(D$Case.Rate.per.100000)
+
+```
+
+
+```{r}
+ggplot(data = D,
+  mapping = aes(x= Case.Rate.per.100000))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,6000,600)) +
+  labs(title =  "Histogram of Case rate per 100000", x = "Case per 100000", y = 'Count')+
+  scale_x_continuous(breaks=seq(0, 6000, 600))
+```
+
+
+b) Varialbe of Population density per squres 
+The distribution of the Population density per squres clusters at the two ends, which is caused by the extremely high population density of District of Columbia (11496.81) compared to the 50 states.
+While, the logrithm of population density is close to a normal distribution. In addtion, an analysis excluding the District of Columbia is another option. 
+```{r}
+summary(D$Population.density.per.square.miles)
+```
+District of Columbia is extremely high population density than all 50 states
+```{r}
+hist_population_dens <- ggplot(data = D,
+  mapping = aes(x= Population.density.per.square.miles))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,12000,500)) +
+  labs(title =  "Histogram of Population density", x = "Population density per square miles", y = 'Count')+
+  scale_x_continuous(breaks=seq(0, 12000, 1200))
+
+hist_log_population_dens <- ggplot(data = D, aes(x = log(Population.density.per.square.miles))) + 
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,10,1)) + 
+  labs(title = 'Histogram of Population density', x = 'Log Population density per square miles', y = 'Count')
+
+hist_population_dens/hist_log_population_dens
+
+```
+c) White % of Total Population/ Black % of Total Population
+
+Three entries of Black % of total population is "<0.01", which is to be dropped or replaced by values determined by extra resources for further analysis. 
+
+In addition, white % of total population and black % of total population could be highly related. (Correlation of these two vairalbes need to be investigated after cleaning the black % variables)
+
+The distribution of the white % is skewed, not a ideal normal distribution. While the distribution of the square of white % is more close to a normal distribution. 
+```{r}
+D$Black...of.Total.Population
+#cor(D$White...of.Total.Population, D$Black...of.Total.Population)
+```
+
+```{r}
+summary(D$White...of.Total.Population)
+```
+
+```{r}
+ggplot(data = D,
+  mapping = aes(x= White...of.Total.Population))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,1,0.05)) +
+  labs(title =  "Histogram of White Percentage", x = "White % of Total Population", y = 'Count')+
+  scale_x_continuous(breaks=seq(0, 1, 0.1))
+```
+```{r}
+ggplot(data = D,
+  mapping = aes(x= (White...of.Total.Population)^2))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,1,0.05)) +
+  labs(title =  "Histogram of White Percentage", x = "White % of Total Population", y = 'Count')+
+  scale_x_continuous(breaks=seq(0, 1, 0.1))
+```
+
+d) Percent living under the federal poverty line 2018
+
+Correlation of pecent living under poverty line and white percentage of total population shows that they are related. 
+
+The distribution is not heavily skewed. 
+
+```{r}
+summary(D$Percent.living.under.the.federal.poverty.line..2018.)
+cor(D$Percent.living.under.the.federal.poverty.line..2018., D$White...of.Total.Population)
+```
+
+```{r}
+ggplot(data = D,
+  mapping = aes(x= Percent.living.under.the.federal.poverty.line..2018.))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(6,21,1)) +
+  labs(title =  "Histogram of Percent of poverty 2018", x = "Percent.living.under.the.federal.poverty.line", y = 'Count')+
+  scale_x_continuous(breaks=seq(6, 21, 1))
+```
+
+e)
+```
+
+```
+
+## Model 2
+
+No obvious trend could be observed or concluded from the plots. 
+
+```{r}
+D %>% 
+  ggplot(aes(log(Population.density.per.square.miles), Case.Rate.per.100000, color = White...of.Total.Population)) + 
+  geom_point() +   
+  labs(
+    title = 'Relation of Case.Rate.per.100000 to Population Density', 
+    x = 'Log Population Density', 
+    y = 'Case.Rate.per.100000',
+    color = 'White %'
+  )
+```
+```{r}
+D %>% 
+  ggplot(aes(x = log(Population.density.per.square.miles), y = Case.Rate.per.100000, color = Percent.living.under.the.federal.poverty.line..2018.)) + 
+  geom_point() +   
+  labs(
+    title = 'Relation of Case.Rate.per.100000 to Population Density', 
+    x = 'log Population Density', 
+    y = 'Case.Rate.per.100000',
+    color = 'Poverty Percentage'
+  )
+```
+
+```{r}
+D %>% 
+  ggplot(aes(x = White...of.Total.Population, y = Case.Rate.per.100000, color = Percent.living.under.the.federal.poverty.line..2018.)) + 
+  geom_point() +   
+  labs(
+    title = 'Relation of Case.Rate.per.100000 to White %', 
+    x = 'White % of Total Population', 
+    y = 'Case.Rate.per.100000',
+    color = 'Poverty Percentage'
+  )
+```
+
+
+```{r}
+D %>% 
+  ggplot(aes(x = Percent.living.under.the.federal.poverty.line..2018., y = Case.Rate.per.100000, color = log(Population.density.per.square.miles))) + 
+  geom_point() +   
+  labs(
+    title = 'Relation of Case.Rate.per.100000 to Poverty %', 
+    x = 'Percent.living.under.the.federal.poverty.line..2018.', 
+    y = 'Case.Rate.per.100000',
+    color = 'log(Population Density)'
+  )
+```
+
+## Model 1-a
+$$
+\begin{aligned}
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 Population.Density.Per.Square.Miles
+\end{aligned}
+$$
+
+```{r}
+model1a <- lm(Case.Rate.per.100000 ~ Population.density.per.square.miles, data = D)
+coeftest(model1a, vcov = vcovHC)
+```
+## Model 1-b
+$$
+\begin{aligned}
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)
+\end{aligned}
+$$
+```{r}
+model1b <- lm(Case.Rate.per.100000 ~ log(Population.density.per.square.miles) , data = D)
+coeftest(model1b, vcov = vcovHC)
+
+```
+## Model 2-a
+$$
+\begin{aligned}
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)
+\end{aligned}
+$$
+
+
+
+```{r}
+model2a <- lm(Case.Rate.per.100000 ~ log(Population.density.per.square.miles)+ White...of.Total.Population, data = D)
+coeftest(model2a, vcov = vcovHC)
+
+#model2a <- lm(Case.Rate.per.100000 ~  White...of.Total.Population, data = D)
+#coeftest(model2a, vcov = vcovHC)
+```
+$$
+\begin{aligned}
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)^2
+\end{aligned}
+$$
+```{r}
+model2a <- lm(Case.Rate.per.100000 ~ log(Population.density.per.square.miles)+ I((White...of.Total.Population)^2), data = D)
+coeftest(model2a, vcov = vcovHC)
+
+#model2a <- lm(Case.Rate.per.100000 ~  White...of.Total.Population, data = D)
+#coeftest(model2a, vcov = vcovHC)
+```
+
+
+
+## Model 2-b
+$$
+\begin{aligned}
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)\\ &+\beta_3(Percen.living.under.the.federal.poverty.line.2018)
+\end{aligned}
+$$
+
+```{r}
+model2b <- lm(Case.Rate.per.100000 ~log(Population.density.per.square.miles)+ White...of.Total.Population+Percent.living.under.the.federal.poverty.line..2018., data = D)
+coeftest(model2b, vcov = vcovHC)
+
+#model2b <- lm(Case.Rate.per.100000 ~Percent.living.under.the.federal.poverty.line..2018., data = D)
+#coeftest(model2b, vcov = vcovHC)
+```
+
+$$
+\begin{aligned}
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)^2\\ &+\beta_3(Percen.living.under.the.federal.poverty.line.2018)
+\end{aligned}
+$$
+```{r}
+model2b <- lm(Case.Rate.per.100000 ~log(Population.density.per.square.miles)+ I((White...of.Total.Population)^2) + Percent.living.under.the.federal.poverty.line..2018., data = D)
+coeftest(model2b, vcov = vcovHC)
+
+#model2b <- lm(Case.Rate.per.100000 ~Percent.living.under.the.federal.poverty.line..2018., data = D)
+#coeftest(model2b, vcov = vcovHC)
+```
+
+## Limitations
+
+I.I.D assumption for CLM is not satisfied perfectly for all the models discussed above, since the states are not isolated from each other. It is impossible states suffered from pandmice at randomly different levels. Actually, the pandemic status across states may be highly related to each other. 
+
+In addition, all states are involved in the same market economy system even though there are econoy perfermance divisions across the states. Moreover, in most states white race is still dominant in the population. Many states share similar racial composition. 
+
+
+
+
