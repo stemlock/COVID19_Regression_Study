@@ -30,6 +30,129 @@ Finally, with regard to the policy variables, this report focuses solely on mask
   
   There are two broad groups of covariates which will be examined in building the model. The first is demographic information on the state, such as population density, the unemployment rate, or rate of people living in poverty. The second general group is that of policy decisions taken by the state, such as mask mandates, legal enforcements of policies, or the political party of the state's governor (which is assumed to be related to the policies they may support). Problematic covariates would include any of the other direct measures of covid severity in the state, such as total infection rate not on a per capita basis or death rates. It can be assumed that these variables would be colinear with the primary variable of interest since more covid cases per capita would imply more total cases not adjusted for population or be strongly correlated with more deaths per capita, etc. 
 
+- **Common Data across models:**
+```{r lib,include=FALSE}
+library(lmtest)
+library(sandwich)
+library(tidyverse)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+```
+
+```{r variables, warning=FALSE}
+df <- read.csv("covid-19.csv", header = TRUE)
+df<-df%>%
+  rename(case_rate_100k = 'Case.Rate.per.100000',
+         death_rate_100k = 'Death.Rate.per.100000',
+         population_density = 'Population.density.per.square.miles',
+         white_pct = 'White...of.Cases',
+         black_pct = 'Black...of.Cases',
+         hispanic_pct = 'Hispanic...of.Cases',
+         other_pct = 'Other...of.Cases',
+         state_emergency = 'State.of.emergency',
+         business_closed = 'Closed.other.non.essential.businesses',
+         business_reopen = 'Began.to.reopen.businesses.statewide',
+         mask_public='Mandate.face.mask.use.by.all.individuals.in.public.spaces',
+         mask_legal='No.legal.enforcement.of.face.mask.mandate') %>%
+  select(case_rate_100k, death_rate_100k,population_density, white_pct, black_pct, hispanic_pct, 
+         other_pct, state_emergency, business_closed, business_reopen, mask_public, mask_legal)
+# Assign correct data types
+cols.num <- c("white_pct","black_pct","hispanic_pct","other_pct")
+df[cols.num] <- sapply(df[cols.num],as.numeric)
+df$state_emergency=as.Date(df$state_emergency, format = "%m/%d/%Y")
+df$business_closed=as.Date(df$business_closed, format = "%m/%d/%Y")
+df$business_reopen=as.Date(df$business_reopen, format = "%m/%d/%Y")
+head(df)
+```
+  
+- **Regression Models:**
+    - **Model 1** Does this model only include key explanatory variables?  Do the variables make sense given the measurement goals?  Did the team apply reasonable transformations to these variables, to capture the nature of the relationships?
+    - **Model 2** Does this model represent a balanced approach, including variables that advance modeling goals without causing major issues?  Does the model succeed in reducing standard errors of the key variables compared to the base model?  Does it capture major non-linearities in the joint distribution of the variables?
+    - **Model 3**  Does this model represent a maximalist approach, erring on the side of including most variables?  Is it still a reasonable model?  Are there any variables that are outcomes, and should therefore still be excluded?  Is there too much multicolinearity, to the point that the key causal effects cannot be measured?
+
+    - For Model 3. Policy related variables will be introduced for the analytics. Policy variable "Mandate face mask use by all individuals in public spaces" (renamed as mask_public) is selected as control variable to predict the case rate. Given it has been proved that mask is effective in preventing the transmission of disease, it is expected that the mask policy mandate in public would have an effect in reducing the case rate. There are other variables related to mask such as "No legal enforcement of face mask mandate" and "Mandate face mask use by employees in public-facing businesses", we believe these variables have a lower impact than the policy that is enforced to public. Also, it is very likely that if a state enforce public mask policy, they will by default enforce mask policy for employees in public-facing business. As a result, we believe mask policy for all individuals in public space can be used to effectively represents the policy impact. Also, it is worth to note that, the mask_public is in date format, which has value of zero or a actual date when the policy is enforced. According to the documentation, zero represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For a leaner regression, the date values in mask_public column are transformed as value 1, so that we can distinguish whether states has public mask policy or not.
+
+Firstly, "mask_public_bool" column is created from "mask_public", with 1 represents that the state has a pulbic mask policy, and 0 means there's no explicit public mask policy from the state.
+```{r}
+
+df <- df %>% 
+  mutate(
+    mask_public_bool = case_when(
+      mask_public == 0 ~ 0, 
+      !(mask_public == 0) ~ 1
+      )
+  )
+head(df)
+```
+
+Histograms below that shows the distribution of states that has public mask policy or not. Both distributions exhibits certain degree of normality. 
+```{r}
+hist(df$case_rate_100k[df$mask_public_bool == 1], xlab='Case Rate', ylab='Count', main='Case Rate - Mask Mandate in Public')
+hist(df$case_rate_100k[df$mask_public_bool == 0], xlab='Case Rate', ylab='Count', main='Case Rate  - No Mask Mandate in Public')
+```
+
+
+A plot that shows the relationship between different policies vs case rate.
+```{r}
+df %>% 
+  ggplot(aes(x = mask_public_bool, y = case_rate_100k, color = case_rate_100k)) + 
+  geom_point(aes(size=case_rate_100k)) + 
+  labs(
+    title = 'Case Rate vs Mask Public Mandate', 
+    x = 'Mask Mandate in Public', 
+    y = 'Case Rate', 
+    color = 'Case Rate'
+  )
+```
+
+Next, the linear model is created from model 2 with the mask policy variables added for the regression.
+
+```{r}
+model3 <- lm(case_rate_100k ~ log(population_density) +white_pct+ mask_public_bool, data = df)
+coeftest(model3, vcov = vcovHC)
+```
+
+Evaluation of the business closed variable.
+```{r}
+
+df$close_period = as.integer( df$business_reopen-df$business_closed)
+head(df)
+hist(df$close_period, xlab='close period', ylab='Count', main='close length')
+df %>% 
+  ggplot(aes(x = close_period, y = case_rate_100k, color = close_period)) + 
+  geom_point() + 
+  labs(
+    title = 'Case Rate vs Mask Public Mandate', 
+    x = 'Mask Mandate in Public', 
+    y = 'Case Rate', 
+    color = 'Case Rate'
+  )
+
+model3 <- lm(case_rate_100k ~ close_period, data = df)
+coeftest(model3, vcov = vcovHC)
+
+df[is.na(df$business_closed),]
+df[42,'business_closed'] = max(df$business_closed[!is.na(df$business_reopen)])
+mean(df$business_closed)
+df$business_close_diff = df$business_closed-mean(df$business_closed)
+head(df)
+
+df %>% 
+  ggplot(aes(x = business_close_diff, y = case_rate_100k, color = close_period)) + 
+  geom_point() + 
+  labs(
+    title = 'Case Rate vs Mask Public Mandate', 
+    x = 'Mask Mandate in Public', 
+    y = 'Case Rate', 
+    color = 'Case Rate'
+  )
+
+model3 <- lm(case_rate_100k ~ business_close_diff + mask_public_bool, data = df)
+coeftest(model3, vcov = vcovHC)
+
+```
+
 ### 3. Limitations of the Model
 
 The most general requirement for the linear model is that data points be independent and identically distributed (IID). While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. While this is acknowledged to occur, the effect is likely minor compared to the demographic and policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
@@ -40,4 +163,6 @@ Related to the relationship of the residuals to the data, homoskedasticity can b
 
 Perfect colinearity is automatically detected by the R regression algorithms, which drop potential variables if they have complete colinearity with another variable. Near perfect colinearity is more problematic to detect, but a common hint to its existence is large standard errors on colinear features. Conceptually, the variables which may have an important colinearity in the final model are
 
-Finally, normally distributed errors can be easily assessed by a histogram of the residuals around zero. 
+Finally, normally distributed errors can be easily assessed by a histogram of the residuals around zero. Finally, normally distributed errors can be easily assessed by a histogram of the residuals around zero. 
+
+
