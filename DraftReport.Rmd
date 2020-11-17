@@ -34,11 +34,15 @@ df<-df%>%
          business_closed = 'Closed.other.non.essential.businesses',
          business_reopen = 'Began.to.reopen.businesses.statewide',
          mask_public='Mandate.face.mask.use.by.all.individuals.in.public.spaces',
-         mask_legal='No.legal.enforcement.of.face.mask.mandate') %>%
+         mask_legal='No.legal.enforcement.of.face.mask.mandate',
+         black_population_pct ="Black...of.Total.Population",
+         white_population_pct = "White...of.Total.Population",
+         poverty_pct = "Percent.living.under.the.federal.poverty.line..2018.",
+         unemployed_pct = "Percent.Unemployed..2018.",
+         senior_pct = "X65.") %>%
   select(State, case_rate_100k, death_rate_100k,population_density, white_pct, black_pct, hispanic_pct, 
          other_pct, state_emergency, business_closed, business_reopen, mask_public, mask_legal, 
-         Black...of.Total.Population, White...of.Total.Population,
-         Percent.living.under.the.federal.poverty.line..2018., Percent.Unemployed..2018., X65.)
+         black_population_pct, white_population_pct, poverty_pct, unemployed_pct, senior_pct)
 # Assign correct data types
 cols.num <- c("white_pct","black_pct","hispanic_pct","other_pct")
 df[cols.num] <- sapply(df[cols.num],as.numeric)
@@ -100,18 +104,18 @@ State Characteristics:
  
 Demographics:
 
- - Children 0-18
- - Adults 19-25
- - Adults 26-34
- - Adults 35-54
- - Adults 55-64
- - 65+
- - white % of Total Population,
- - Black % of Total Population, 
- - Hispanic % of Total Population, 
- - Other % of Total Population
+ - Children 0-18 Percentage
+ - Adults 19-25 Percentage
+ - Adults 26-34 Percentage
+ - Adults 35-54 Percentage
+ - Adults 55-64 Percentage
+ - 65+ Percentage
+ - white Percentage of Total Population,
+ - Black Percentage of Total Population, 
+ - Hispanic Percentage of Total Population, 
+ - Other Percentage of Total Population
  
-Currently, Case Rate per 100,000 is chosen as a dependent variable to represent the pandemic status in each state. Variables such as Population density per square miles, Percent Unemployed (2018)/Percent living under the federal poverty line (2018), White % of of Total Population/Black % of Total Population, Percentage of 65+, and mask mandate policies are chosen as candidate covariates to explore potential relationships between pandemic status demographic characteristics, economic status, racial composition, and state policy.
+Currently, Case rate per 100,000 is chosen as a dependent variable to represent the pandemic status in each state. Variables such as population density per square miles, unemployed (2018)/percentage living under the federal poverty line (2018), white/black percentage of of total Population, percentage of seniors(65+), and mask mandate policies are chosen as candidate covariates to explore potential relationships between pandemic status demographic characteristics, economic status, racial composition, and state policy.
 
 ### Data Exploration
 
@@ -119,7 +123,7 @@ Through data exploration, most data investigated is clean as numerical type exce
 
 Several transformations have been made for variables a Population density per square miles and White % of Total Population. Population density is extremely skewed due to the high population density of the District of Columbia.  A logarithm transformation of this variable is of more uniform distribution. In addition, the square of the white percentage of the total population is of a distribution closer to the normal distribution. It also represents the chance that the interaction happens between two white people in practice.
 
-In addition, correlation values of White% and Black %, Percent Unemployed and Percent living under the federal poverty line shows these two groups of variables are correlated respectively.
+In addition, correlation values of white percentage and black percentage, unemployed percentage and percentage living under the federal poverty line shows these two groups of variables are correlated respectively.
 
 ### Model 1
 
@@ -133,7 +137,7 @@ summary(df$case_rate_100k)
 ggplot(data = df,
   mapping = aes(x= case_rate_100k))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,6000,600)) +
-  labs(title =  "Histogram of COVID Case Rate per 100,000", x = "Cases per 100,000", y = 'Count')+
+  labs(title =  "Histogram of COVID Case Rate per 100,000", x = "COVID case rate per 100,000", y = 'Count')+
   scale_x_continuous(breaks=seq(0, 6000, 600))
 ```
 
@@ -146,7 +150,7 @@ histogram_of_pdensity <- df %>%
   ggplot(aes(x = population_density)) + 
   geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
   labs(
-    title = 'Distribution of Population Density per Square Mile', 
+    title = 'Distribution of Population Density per Square Miles', 
     x = 'Population density per square mile', y = 'Count')
 
 histogram_of_pdensity
@@ -168,8 +172,8 @@ histogram_of_pdensity <- df %>%
   ggplot(aes(x = l_population_density)) + 
   geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
   labs(
-    title = 'Figure 2. Distribution of Population Density per Square Mile without D.C.', 
-    x = 'Log of population density per square mile', y = 'Count')
+    title = 'Figure 2. Distribution of Population Density per Square Miles', 
+    x = 'Log 10 of population density per square mile', y = 'Count')
 
 histogram_of_pdensity
 ```
@@ -183,7 +187,7 @@ df %>%
   geom_point() +   
   labs(
     title = 'COVID Case Rate due to Population Density', 
-    x = 'Log of population density per square mile', 
+    x = 'Log 10 of population density per square miles', 
     y = 'COVID case rate per 100,000'
   )
 ```
@@ -213,72 +217,73 @@ The distribution of the white % is skewed, not an ideal normal distribution. Whi
 
 
 ```{r}
-black_num <- as.numeric(df$Black...of.Total.Population)
+black_num <- as.numeric(df$black_population_pct)
 black_num[is.na(black_num)]<- 0
-cor(df$White...of.Total.Population, black_num)
+cor(df$white_population_pct, black_num)
 ```
 
+
 ```{r}
-summary(df$White...of.Total.Population)
+summary(df$white_population_pct)
 ```
 
 ```{r}
 ggplot(data = df,
-  mapping = aes(x= White...of.Total.Population))+
+  mapping = aes(x= white_population_pct))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,1,0.05)) +
-  labs(title =  "Histogram of White Percentage", x = "White % of Total Population", y = 'Count')+
+  labs(title =  "Histogram of White Population Percentage", x = "White percentage of total population", y = 'Count')+
   scale_x_continuous(breaks=seq(0, 1, 0.1))
 ```
 ```{r}
 ggplot(data = df,
-  mapping = aes(x= (White...of.Total.Population)^2))+
+  mapping = aes(x= (white_population_pct)^2))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,1,0.05)) +
-  labs(title =  "Histogram of White Percentage", x = "White % of Total Population^2", y = 'Count')+
+  labs(title =  "Histogram of Square of White Percentage", x = "White percentage of total population^2", y = 'Count')+
   scale_x_continuous(breaks=seq(0, 1, 0.1))
 ```
 
-#### 2-b) Percent living under the federal poverty line 2018
+#### 2-b) Percentage living under the federal poverty line(2018)
 
-Correlation of pecent living under poverty line and white percentage of total population shows that they are not significantly related. The distribution is not heavily skewed. 
+Correlation of pecentage living under poverty line and white percentage of total population shows that they are not significantly related. The distribution of the poverty percentage is not heavily skewed. 
 
 ```{r}
-summary(df$Percent.living.under.the.federal.poverty.line..2018.)
-cor(df$Percent.living.under.the.federal.poverty.line..2018., df$White...of.Total.Population)
+summary(df$poverty_pct)
+cor(df$poverty_pct, df$white_population_pct)
 ```
 
 ```{r}
 ggplot(data = df,
-  mapping = aes(x= Percent.living.under.the.federal.poverty.line..2018.))+
+  mapping = aes(x= poverty_pct))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(6,21,1)) +
-  labs(title =  "Histogram of Percent of poverty 2018", x = "Percent.living.under.the.federal.poverty.line", y = 'Count')+
+  labs(title =  "Histogram of Poverty Percentage", x = "Percentage living under poverty line(2018)", y = 'Count')+
   scale_x_continuous(breaks=seq(6, 21, 1))
 ```
-#### 2-c) Percent Unemployed 2018
+#### 2-c) Unemployed Percentage (2018)
 Although, the distribution is of high peak in the middle of the range. Overall, it is not highly skewed or heavily tailed. In addition, the unemployed rate is correlated to the variable to the poverty rate, which is in an agreement with intuitive expectation. 
 
 ```{r}
-summary(df$Percent.Unemployed..2018.)
-cor(df$Percent.Unemployed..2018., df$Percent.living.under.the.federal.poverty.line..2018.)
+summary(df$unemployed_pct)
+cor(df$unemployed_pct, df$poverty_pct)
 ```
 ```{r}
 ggplot(data = df,
-  mapping = aes(x= Percent.Unemployed..2018.))+
+  mapping = aes(x= unemployed_pct))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,10,1)) +
-  labs(title =  "Histogram of Unemployed percentage", x = "Percent.Unemployed..2018.", y = 'Count')+
+  labs(title =  "Histogram of Unemployed Percentage", x = "Unemployed percentage (2018)", y = 'Count')+
   scale_x_continuous(breaks=seq(0, 10, 1))
 ```
 
-#### 2-d) Age 65+ Percentage
-The 65+ percentage is of a nearly normal distribution.
+#### 2-d) Seniors Percentage(Age 65+)
+The seniors percentage (age 65+) is of a nearly normal distribution.
 
 ```{r}
-summary(df$X65.)
+summary(df$senior_pct)
 ```
 ```{r}
 ggplot(data = df,
-  mapping = aes(x= X65.))+
+  mapping = aes(x= senior_pct))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0.10,0.22,0.01)) +
-  labs(title =  "Histogram of Percent of 65+", x = "65+ Percentage", y = 'Count')+
+  labs(title =  "Histogram of Seniors Percentage (65+)", x = "Seniors percentage", y = 'Count')+
   scale_x_continuous(breaks=seq(0.1, 0.25, 0.05))
 ```
 
@@ -288,72 +293,65 @@ No obvious trend could be easily observed or concluded from the plots regarding 
 
 ```{r}
 df %>% 
-  ggplot(aes(log10(population_density), case_rate_100k, color = White...of.Total.Population)) + 
-  geom_point() +   
+  ggplot(aes(white_population_pct, case_rate_100k, color = log10(population_density))) + 
+  geom_point() + 
+  geom_smooth(se=FALSE)+
   labs(
-    title = 'Relation of Case.Rate.per.100000 to Population Density', 
-    x = 'Log Population Density', 
-    y = 'Case.Rate.per.100000',
-    color = 'White %'
+    title = 'Relation of Case Rate Per 100000 to White Population Percentage', 
+    x = 'White percentage of total population', 
+    y = 'Case rate per 100000',
+    color = 'Log 10 of population density'
   )
 ```
 ```{r}
 df %>% 
-  ggplot(aes(x = log10(population_density), y = case_rate_100k, color = Percent.living.under.the.federal.poverty.line..2018.)) + 
-  geom_point() +   
+  ggplot(aes(x = white_population_pct, y = case_rate_100k, color = poverty_pct)) + 
+  geom_point() +
+  geom_smooth(se=FALSE)+
   labs(
-    title = 'Relation of Case.Rate.per.100000 to Population Density', 
-    x = 'log Population Density', 
-    y = 'Case.Rate.per.100000',
-    color = 'Poverty Percentage'
+    title = 'Relation of Case Rate per 100000 to White Population Percentage', 
+    x = 'White percentage of total population', 
+    y = 'Case rate per 100000',
+    color = 'Poverty percentage'
+  )
+```
+```{r}
+df %>% 
+  ggplot(aes(x = poverty_pct , y = case_rate_100k, color = log10(population_density))) + 
+  geom_point() + 
+  geom_smooth(se=FALSE)+
+  labs(
+    title = 'Relation of Case Rate per 100000 to Poverty Percentage', 
+    x = 'Poverty Percentage', 
+    y = 'Case rate per 100000',
+    color = 'Log 10 of population density'
+  )
+```
+
+
+```{r}
+df %>% 
+  ggplot(aes(unemployed_pct, case_rate_100k, color = log10(population_density))) + 
+  geom_point() + 
+  geom_smooth(se=FALSE)+
+  labs(
+    title = 'Relation of Case Rate per 100000 to Unemployed Percentage', 
+    x = 'Unemployed percentage(2018)', 
+    y = 'Case rate per 100000',
+    color = 'log 10 of population density'
   )
 ```
 
 ```{r}
 df %>% 
-  ggplot(aes(x = White...of.Total.Population, y = case_rate_100k, color = Percent.living.under.the.federal.poverty.line..2018.)) + 
+  ggplot(aes(senior_pct, case_rate_100k, color = log10(population_density))) + 
   geom_point() +   
+  geom_smooth(se=FALSE)+
   labs(
-    title = 'Relation of Case.Rate.per.100000 to White %', 
-    x = 'White % of Total Population', 
-    y = 'Case.Rate.per.100000',
-    color = 'Poverty Percentage'
-  )
-```
-
-
-```{r}
-df %>% 
-  ggplot(aes(x = Percent.living.under.the.federal.poverty.line..2018., y = case_rate_100k, color = log10(population_density))) + 
-  geom_point() +   
-  labs(
-    title = 'Relation of Case.Rate.per.100000 to Poverty %', 
-    x = 'Percent.living.under.the.federal.poverty.line..2018.', 
-    y = 'Case.Rate.per.100000',
-    color = 'log(Population Density)'
-  )
-```
-```{r}
-df %>% 
-  ggplot(aes(X65., case_rate_100k, color = log10(population_density))) + 
-  geom_point() +   
-  labs(
-    title = 'Relation of Case.Rate.per.100000 to 65+ Percentage', 
-    x = 'X65+.', 
-    y = 'Case.Rate.per.100000',
-    color = 'log(Population density)'
-  )
-```
-
-```{r}
-df %>% 
-  ggplot(aes(Percent.Unemployed..2018., case_rate_100k, color = log10(population_density))) + 
-  geom_point() +   
-  labs(
-    title = 'Relation of Case.Rate.per.100000 to Unemployed Percentage', 
-    x = 'Percent.Unemployed..2018.', 
-    y = 'Case.Rate.per.100000',
-    color = 'log(Population density)'
+    title = 'Relation of Case Rate per 100000 to Seniors Percentage(65+)', 
+    x = 'Seniors percentage', 
+    y = 'Case rate per 100000',
+    color = 'log 10 of population density'
   )
 ```
 
@@ -365,14 +363,14 @@ According to the regression results, no coefficients regarding the demographic v
 #### Model 2-a
 $$
 \begin{aligned}
- Case.Rate.Per.100000 =\beta_0 &+\beta_1 log(Population.Density.Per.Square.Miles)\\&+\beta_2(White.Percentage.of.total. population)
+ Case.Rate.Per.100000 =\beta_0 &+\beta_1 log(Population.Density.Per.Square.Miles)\\&+\beta_2(White.Percentage.of.Total.Population)
 \end{aligned}
 $$
 
 
 
 ```{r}
-model2a <- lm(case_rate_100k ~ log10(population_density)+ White...of.Total.Population, data = df)
+model2a <- lm(case_rate_100k ~ log10(population_density)+ white_population_pct, data = df)
 coeftest(model2a, vcov = vcovHC)
 
 ```
@@ -381,11 +379,11 @@ coeftest(model2a, vcov = vcovHC)
 
 $$
 \begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)^2
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.Total.Population)^2
 \end{aligned}
 $$
 ```{r}
-model2a <- lm(case_rate_100k ~ log10(population_density)+ I((White...of.Total.Population)^2), data = df)
+model2a <- lm(case_rate_100k ~ log10(population_density)+ I((white_population_pct)^2), data = df)
 coeftest(model2a, vcov = vcovHC)
 ```
 
@@ -394,11 +392,11 @@ coeftest(model2a, vcov = vcovHC)
 
 $$
 \begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles) + \beta_3(Percen.living.under.the.federal.poverty.line.2018)
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles) + \beta_3(Percentage.Under.Poverty.Line.2018)
 \end{aligned}
 $$
 ```{r}
-model2b <- lm(case_rate_100k ~ log10(population_density) + Percent.living.under.the.federal.poverty.line..2018., data = df)
+model2b <- lm(case_rate_100k ~ log10(population_density) + poverty_pct, data = df)
 coeftest(model2b, vcov = vcovHC)
 ```
 
@@ -406,11 +404,11 @@ coeftest(model2b, vcov = vcovHC)
 
 $$
 \begin{aligned}
- Case.Rate.Per.100000 &=\beta_0+\beta_1 log(Population.Density.Per.Square.Miles)+\beta_4(Percent.Unemployed..2018.)
+ Case.Rate.Per.100000 &=\beta_0+\beta_1 log(Population.Density.Per.Square.Miles)+\beta_4(Percentage.Unemployed.2018.)
 \end{aligned}
 $$
 ```{r}
-model2c <- lm(case_rate_100k ~ log10(population_density) + Percent.Unemployed..2018., data = df)
+model2c <- lm(case_rate_100k ~ log10(population_density) + unemployed_pct, data = df)
 coeftest(model2c, vcov = vcovHC)
 ```
 
@@ -418,11 +416,11 @@ coeftest(model2c, vcov = vcovHC)
 
 $$
 \begin{aligned}
-Case.Rate.Per.100000=\beta_0+\beta_1log(Population.Density.Per.Square.Miles)+\beta_4(65+)
+Case.Rate.Per.100000=\beta_0+\beta_1log(Population.Density.Per.Square.Miles)+\beta_4(Seniors.Percentage)
 \end{aligned}
 $$
 ```{r}
-model2d <- lm(case_rate_100k ~log10(population_density)+ X65., data = df)
+model2d <- lm(case_rate_100k ~log10(population_density)+ senior_pct, data = df)
 coeftest(model2d, vcov = vcovHC)
 ```
 
@@ -472,7 +470,7 @@ Next, the linear model is created from model 2 with the mask policy variables ad
 
 ```{r}
 model3a <- lm(case_rate_100k ~ log10(population_density)
-              + Percent.living.under.the.federal.poverty.line..2018.
+              + poverty_pct
               + mask_public_bool, data = df)
 coeftest(model3a, vcov = vcovHC)
 ```
