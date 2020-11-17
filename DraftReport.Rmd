@@ -161,7 +161,7 @@ paste(outliers$State, '=', outliers$population_density)
 
 # Transform the variable by taking the logarithm and assign it to a new variable
 df <- df %>% 
-  mutate(l_population_density = log(population_density))
+  mutate(l_population_density = log10(population_density))
 
 # Plot the new distribution in a histogram
 histogram_of_pdensity <- df %>%
@@ -195,7 +195,7 @@ Case.Rate.Per.100000 =\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)
 $$
 
 ```{r}
-model1 <- lm(case_rate_100k ~ log(population_density) , data = df)
+model1 <- lm(case_rate_100k ~ log10(population_density) , data = df)
 coeftest(model1, vcov = vcovHC)
 ```
 
@@ -288,7 +288,7 @@ No obvious trend could be easily observed or concluded from the plots regarding 
 
 ```{r}
 df %>% 
-  ggplot(aes(log(population_density), case_rate_100k, color = White...of.Total.Population)) + 
+  ggplot(aes(log10(population_density), case_rate_100k, color = White...of.Total.Population)) + 
   geom_point() +   
   labs(
     title = 'Relation of Case.Rate.per.100000 to Population Density', 
@@ -299,7 +299,7 @@ df %>%
 ```
 ```{r}
 df %>% 
-  ggplot(aes(x = log(population_density), y = case_rate_100k, color = Percent.living.under.the.federal.poverty.line..2018.)) + 
+  ggplot(aes(x = log10(population_density), y = case_rate_100k, color = Percent.living.under.the.federal.poverty.line..2018.)) + 
   geom_point() +   
   labs(
     title = 'Relation of Case.Rate.per.100000 to Population Density', 
@@ -324,7 +324,7 @@ df %>%
 
 ```{r}
 df %>% 
-  ggplot(aes(x = Percent.living.under.the.federal.poverty.line..2018., y = case_rate_100k, color = log(population_density))) + 
+  ggplot(aes(x = Percent.living.under.the.federal.poverty.line..2018., y = case_rate_100k, color = log10(population_density))) + 
   geom_point() +   
   labs(
     title = 'Relation of Case.Rate.per.100000 to Poverty %', 
@@ -335,7 +335,7 @@ df %>%
 ```
 ```{r}
 df %>% 
-  ggplot(aes(X65., case_rate_100k, color = log(population_density))) + 
+  ggplot(aes(X65., case_rate_100k, color = log10(population_density))) + 
   geom_point() +   
   labs(
     title = 'Relation of Case.Rate.per.100000 to 65+ Percentage', 
@@ -347,7 +347,7 @@ df %>%
 
 ```{r}
 df %>% 
-  ggplot(aes(Percent.Unemployed..2018., case_rate_100k, color = log(population_density))) + 
+  ggplot(aes(Percent.Unemployed..2018., case_rate_100k, color = log10(population_density))) + 
   geom_point() +   
   labs(
     title = 'Relation of Case.Rate.per.100000 to Unemployed Percentage', 
@@ -372,7 +372,7 @@ $$
 
 
 ```{r}
-model2a <- lm(case_rate_100k ~ log(population_density)+ White...of.Total.Population, data = df)
+model2a <- lm(case_rate_100k ~ log10(population_density)+ White...of.Total.Population, data = df)
 coeftest(model2a, vcov = vcovHC)
 
 ```
@@ -385,71 +385,32 @@ $$
 \end{aligned}
 $$
 ```{r}
-model2a <- lm(case_rate_100k ~ log(population_density)+ I((White...of.Total.Population)^2), data = df)
+model2a <- lm(case_rate_100k ~ log10(population_density)+ I((White...of.Total.Population)^2), data = df)
 coeftest(model2a, vcov = vcovHC)
 ```
-$$
-\begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 + \beta_2(White.Percentage.of.total. population)^2
-\end{aligned}
-$$
-```{r}
-model2a <- lm(case_rate_100k ~ I((White...of.Total.Population)^2), data = df)
-coeftest(model2a, vcov = vcovHC)
-```
-
-
 
 #### Model 2-b
-$$
-\begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)\\ &+\beta_3(Percen.living.under.the.federal.poverty.line.2018)
-\end{aligned}
-$$
 
-```{r}
-model2bi <- lm(case_rate_100k ~log(population_density)+ white_pct+Percent.living.under.the.federal.poverty.line..2018., data = df)
-coeftest(model2bi, vcov = vcovHC)
-```
 
 $$
 \begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)^2\\ &+\beta_3(Percen.living.under.the.federal.poverty.line.2018)
+ Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles) + \beta_3(Percen.living.under.the.federal.poverty.line.2018)
 \end{aligned}
 $$
 ```{r}
-model2bii <- lm(case_rate_100k ~log(population_density)+ I((White...of.Total.Population)^2) + Percent.living.under.the.federal.poverty.line..2018., data = df)
-coeftest(model2bii, vcov = vcovHC)
-```
-$$
-\begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 +\beta_3(Percen.living.under.the.federal.poverty.line.2018)
-\end{aligned}
-$$
-```{r}
-model2biii <- lm(case_rate_100k ~ Percent.living.under.the.federal.poverty.line..2018., data = df)
-coeftest(model2biii, vcov = vcovHC)
+model2b <- lm(case_rate_100k ~ log10(population_density) + Percent.living.under.the.federal.poverty.line..2018., data = df)
+coeftest(model2b, vcov = vcovHC)
 ```
 
 #### Model 2-c
 
 $$
 \begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)\\ &+ \beta_2(White.Percentage.of.total. population)^2\\ &+\beta_4(Percent.Unemployed..2018.)
+ Case.Rate.Per.100000 &=\beta_0+\beta_1 log(Population.Density.Per.Square.Miles)+\beta_4(Percent.Unemployed..2018.)
 \end{aligned}
 $$
 ```{r}
-model2c <- lm(case_rate_100k ~log(population_density)+ I((White...of.Total.Population)^2) + Percent.Unemployed..2018., data = df)
-coeftest(model2c, vcov = vcovHC)
-
-```
-$$
-\begin{aligned}
- Case.Rate.Per.100000 &=\beta_0+\beta_4(Percent.Unemployed..2018.)
-\end{aligned}
-$$
-```{r}
-model2c <- lm(case_rate_100k ~ Percent.Unemployed..2018., data = df)
+model2c <- lm(case_rate_100k ~ log10(population_density) + Percent.Unemployed..2018., data = df)
 coeftest(model2c, vcov = vcovHC)
 ```
 
@@ -457,31 +418,11 @@ coeftest(model2c, vcov = vcovHC)
 
 $$
 \begin{aligned}
-Case.Rate.Per.100000=\beta_0 &+\beta_1log(Population.Density.Per.Square.Miles)\\&+\beta_2(White.Percentage.of.total.population)\\&+\beta_3(Percen.living.under.the.federal.poverty.line.2018)\\&+\beta_5(65+)
+Case.Rate.Per.100000=\beta_0+\beta_1log(Population.Density.Per.Square.Miles)+\beta_4(65+)
 \end{aligned}
 $$
 ```{r}
-model2d <- lm(case_rate_100k ~log(population_density)+ White...of.Total.Population+Percent.living.under.the.federal.poverty.line..2018.+X65., data = df)
-coeftest(model2d, vcov = vcovHC)
-```
-
-$$
-\begin{aligned}
-Case.Rate.Per.100000=\beta_0 &+\beta_1log(Population.Density.Per.Square.Miles)\\&+\beta_2(White.Percentage.of.total.population)^2\\&+\beta_3(Percen.living.under.the.federal.poverty.line.2018)\\&+\beta_4(65+)
-\end{aligned}
-$$
-```{r}
-model2d <- lm(case_rate_100k ~log(population_density)+ I((White...of.Total.Population)^2) + Percent.living.under.the.federal.poverty.line..2018.+X65., data = df)
-coeftest(model2d, vcov = vcovHC)
-```
-
-$$
-\begin{aligned}
-Case.Rate.Per.100000=\beta_0+\beta_4(65+)
-\end{aligned}
-$$
-```{r}
-model2d <- lm(case_rate_100k ~X65., data = df)
+model2d <- lm(case_rate_100k ~log10(population_density)+ X65., data = df)
 coeftest(model2d, vcov = vcovHC)
 ```
 
@@ -530,7 +471,7 @@ df %>%
 Next, the linear model is created from model 2 with the mask policy variables added for the regression. The regression coefficient shows that Mask_public_bool variable is highly significant. The result suggests that public mask mandate policy has postive effect in bringing the case number down.
 
 ```{r}
-model3a <- lm(case_rate_100k ~ log(population_density) + white_pct 
+model3a <- lm(case_rate_100k ~ log10(population_density)
               + Percent.living.under.the.federal.poverty.line..2018.
               + mask_public_bool, data = df)
 coeftest(model3a, vcov = vcovHC)
@@ -587,17 +528,20 @@ Finally, normally distributed errors can be easily assessed by a histogram of th
 
 ```{r warning=FALSE}
 se.model1 = coeftest(model1, vcov = vcovHC)[ , "Std. Error"]
-se.model2 = coeftest(model2bi, vcov = vcovHC)[ , "Std. Error"]
-#se.model3 = coeftest(model2b, vcov = vcovHC)[ , "Std. Error"]
-#se.model4 = coeftest(model2c, vcov = vcovHC)[ , "Std. Error"]
-#se.model5 = coeftest(model2d, vcov = vcovHC)[ , "Std. Error"]
-se.model6 = coeftest(model3a, vcov = vcovHC)[ , "Std. Error"]
+se.model2 = coeftest(model2b, vcov = vcovHC)[ , "Std. Error"]
+se.model3 = coeftest(model3a, vcov = vcovHC)[ , "Std. Error"]
 
-stargazer(model1, model2bi, model3a, type = "text", omit.stat = "f",
-          se = list(se.model6),
+stargazer(model1, model2b, model3a, type = "text", omit.stat = "f",
+          se = list(se.model3),
           star.cutoffs = c(0.05, 0.01, 0.001), title = "Table 1: The relationship between COVID case rate and population density")
 
 ```
+
+- Discuss variables included and not included in the model
+- Talk about Adjusted R2
+- Talk about significant variables in the table
+- Provide a statement that the table may change in the final report with more variables and maybe different key variables (case rate and population density)
+
 
 ## 5. Conclusion
 
