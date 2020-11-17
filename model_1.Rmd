@@ -2,7 +2,9 @@
 title: "model_1"
 author: "Sam Temlock"
 date: "13/11/2020"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +18,7 @@ library(magrittr)
 df <- read.csv("covid-19.csv", header = TRUE)
 ```
 
-For our first model, we will analyze the relationship between the COVID case rate per 100,000 and the population density per square mile of states. First, we take a look at the distribution of population density per square mile.
+For the first model, the relationship between the COVID case rate per 100,000 and the population density per square mile of states was analyzed. First, the distribution of population density per square mile variable is examined.
 
 ```{r}
 histogram_of_pdensity <- df %>%
@@ -29,30 +31,42 @@ histogram_of_pdensity <- df %>%
 histogram_of_pdensity
 ```
 
-As we can see from Figure 1, although most of the population density is concentrated in the 0 to 1500 range, we have some grouping of outliers that are very far from this concentration. When we perform an analysis, we see that there is only one data sample that is the outlier, which is the District of Columbia (D.C.). This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, we choose to remove this data point from the sample. Once removed, we see that we now have a relatively normal distribution of population densities (see Figure 2).
+As can be seen from Figure 1, although most of the population density is concentrated in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is the District of Columbia (D.C.). This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Once this transformation is performed, it is shown that there is a relatively normal distribution of population densities (see Figure 2).
 
 ```{r}
 # Find the outlier data points
 outliers <- subset(df,Population.density.per.square.miles > 4000)
 outliers
 
-# Remove the outlier from the dataset
-df_new <- df[ !(df$State %in% outliers$State), ]
+# Transform the variable by taking the logarithm and assign it to a new variable
+df <- df %>% 
+  mutate(l_population_density = log(Population.density.per.square.miles))
 
-# Check to see that D.C. has been removed
-paste("Outliers in the new dataframe:", outliers$State %in% df_new$State)
-
-histogram_of_pdensity <- df_new %>%
-  ggplot(aes(x = Population.density.per.square.miles)) + 
+# Plot the new distribution in a histogram
+histogram_of_pdensity <- df %>%
+  ggplot(aes(x = l_population_density)) + 
   geom_histogram(bins = 20) + 
   labs(
     title = 'Figure 2. Distribution of Population Density per Square Mile without D.C.', 
-    x = 'Population density per square mile', y = 'Count')
+    x = 'Log of population density per square mile', y = 'Count')
 
 histogram_of_pdensity
 ```
 
-Next, we evaluate the values for case_rate
+Next, the distribution for the case rate of the states is examined for normality.
+
+```{r}
+histogram_of_case_rate <- df %>%
+  ggplot(aes(x = Case.Rate.per.100000)) + 
+  geom_histogram(bins = 20) + 
+  labs(
+    title = 'Figure 3. Distribution of Case Rate per 100,000', 
+    x = 'Case rate per 100,000', y = 'Count')
+
+histogram_of_case_rate
+```
+
+As can be seen above in Figure 3, the distribution is fairly normal, and given that it has already been standardized as a rate across all states, there is no need to perform any transformations on this variable.
 
 ```{r variables}
 

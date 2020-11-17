@@ -2,12 +2,12 @@
 title: "Draft Report"
 author: "203 Section 6, Team 1"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
-- **Common Data across models:**
+ **Initial reassignment of common data used across models:**
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(lmtest)
@@ -20,7 +20,7 @@ library(stargazer)
 library(tinytex)
 ```
 
-```{r variables, warning=FALSE}
+```{r variables, warning=FALSE, results='hide'}
 df <- read.csv("covid-19.csv", header = TRUE)
 df<-df%>%
   rename(case_rate_100k = 'Case.Rate.per.100000',
@@ -35,8 +35,10 @@ df<-df%>%
          business_reopen = 'Began.to.reopen.businesses.statewide',
          mask_public='Mandate.face.mask.use.by.all.individuals.in.public.spaces',
          mask_legal='No.legal.enforcement.of.face.mask.mandate') %>%
-  select(case_rate_100k, death_rate_100k,population_density, white_pct, black_pct, hispanic_pct, 
-         other_pct, state_emergency, business_closed, business_reopen, mask_public, mask_legal, Black...of.Total.Population, White...of.Total.Population, Percent.living.under.the.federal.poverty.line..2018., Percent.Unemployed..2018., X65.)
+  select(State, case_rate_100k, death_rate_100k,population_density, white_pct, black_pct, hispanic_pct, 
+         other_pct, state_emergency, business_closed, business_reopen, mask_public, mask_legal, 
+         Black...of.Total.Population, White...of.Total.Population,
+         Percent.living.under.the.federal.poverty.line..2018., Percent.Unemployed..2018., X65.)
 # Assign correct data types
 cols.num <- c("white_pct","black_pct","hispanic_pct","other_pct")
 df[cols.num] <- sapply(df[cols.num],as.numeric)
@@ -46,7 +48,7 @@ df$business_reopen=as.Date(df$business_reopen, format = "%m/%d/%Y")
 head(df)
 ```
 
-### 1. An Introduction
+## 1. An Introduction
 
 **Research Question:** How is the COVID case rate related to the population density and distribution of demographics of a state? How does the effect of population make-up on case rate compare with the effect of policy decisions made in each state?"
 
@@ -64,7 +66,7 @@ Secondly, note that there are many internal and external aspects of the selected
 
 Finally, with regard to the policy variables, this report focuses solely on mask mandates. Given this, it does not capture the effect of other policies that may or may not have a greater effect on the case rate (e.g., implementation of stay-at-home orders). This follows for the population-related variables, as they capture race/ethnicity and poverty, but not other characteristics such as proportions of residents with pre-existing conditions. In justification, these choices were largely made due to there either being an appropriate amount of samples in each category (e.g., most states have implemented basic policies such as the closure of non-essential businesses and the implementation of stay-at-home orders, and thus these were not included given the lack of samples for the states that have not implemented them), or that data on other policies or demographic measures were simply not readily available in the dataset.
 
-### 2. A Model Building Process
+## 2. A Model Building Process
 
   The primary variable of interest will be the total covid case rate per 100,000 residents. The covid case rate was judged to give a better understanding than the death rate because of the potential for other, unrecorded variables that could be correlated with a person dying from covid versus just becoming infected. For example, the availability and quality of medical care in a state may impact its ability to keep covid infected patients alive, although this is not represented in the data set. The health status of the residents in one state compared to another state may also affect the death rate, but this is also not included. Instead, the covid infection rate was chosen so that these other variables which may correlate with the death rate would not have to be considered. Finally, the covid infection rate was also chosen on a per capita basis so that potential total population differences between states would already be accounted for in the variable. 
   
@@ -72,93 +74,135 @@ Finally, with regard to the policy variables, this report focuses solely on mask
   
   There are two broad groups of covariates which will be examined in building the model. The first is demographic information on the state, such as population density, the unemployment rate, or rate of people living in poverty. The second general group is that of policy decisions taken by the state, such as mask mandates, legal enforcements of policies, or the political party of the state's governor (which is assumed to be related to the policies they may support). Problematic covariates would include any of the other direct measures of covid severity in the state, such as total infection rate not on a per capita basis or death rates. It can be assumed that these variables would be colinear with the primary variable of interest since more covid cases per capita would imply more total cases not adjusted for population or be strongly correlated with more deaths per capita, etc. 
 
+### Model Variables
 
-### Model 1 & Model 2 Building Process
-
-Part of the model aims to investigate the relationship between the covid-19 pandemic status and the state demographic information. The list of demographic variables included in the current dataset is as below. 
-
-COVID-19 Cases by Race/Ethnicity:
- - white % of Total Population,
- - Black % of Total Population, 
- - Hispanic % of Total Population, 
- - Other % of Total Population
- 
+The three models aim to investigate the relationship between the COVID rate, state demographic information, and mask mandates. The list of variables included in the current dataset that pertain to these concepts are listed below. 
  
 State Characteristics:
- - Governor,       
- - Population density per square miles, 
- - Population 2018, 
- - Nonelderly Adults Who Have A Pre-Existing Condition
- - Percent at risk for serious illness due to COVID	
- - All-cause deaths 2018, 
- - Number Homeless (2019), 
- - Medicaid Expenditures as a Percent of Total State Expenditures by Fund, 
- - Life Expectancy at Birth (years),
- - Percent Unemployed (2018)
- - Percent living under the federal poverty line (2018), 
- - Weekly UI maximum amount with extra stimulus (through July 31, 2020) (dollars), 
- - Median Annual Household Income
+
+  - Governor
+  - Population density per square miles
+  - Population 2018
+  - Nonelderly Adults Who Have A Pre-Existing Condition
+  - Percent at risk for serious illness due to COVID
+  - All-cause deaths 2018 
+  - Number Homeless (2019)
+  - Medicaid Expenditures as a Percent of Total State Expenditures by Fund
+  - Life Expectancy at Birth (years)
+  - Percent Unemployed (2018)
+  - Percent living under the federal poverty line (2018)
+  - Weekly UI maximum amount with extra stimulus (through July 31, 2020) (dollars)
+  - Median Annual Household Income
+  - Closed other non-essential businesses
+  - Stay at home/ shelter in place
+  - Mandate face mask use by all individuals in public spaces
+  - No legal enforcement of face mask mandate
  
 Demographics:
- -Children 0-18
+
+ - Children 0-18
  - Adults 19-25
  - Adults 26-34
  - Adults 35-54
  - Adults 55-64
  - 65+
+ - white % of Total Population,
+ - Black % of Total Population, 
+ - Hispanic % of Total Population, 
+ - Other % of Total Population
  
-Currently, Case Rate per 100000 is chosen as a dependent variable to represent the pandemic status in each state. Variables as Population density per square miles, Percent Unemployed (2018)/Percent living under the federal poverty line (2018), White % of of Total Population/Black % of Total Population, Percentage of 65+ are chosen as candidate covariates to explore potential connection between pandemic status demographic characteristics, economy status, racial composition. 
+Currently, Case Rate per 100,000 is chosen as a dependent variable to represent the pandemic status in each state. Variables such as Population density per square miles, Percent Unemployed (2018)/Percent living under the federal poverty line (2018), White % of of Total Population/Black % of Total Population, Percentage of 65+, and mask mandate policies are chosen as candidate covariates to explore potential relationships between pandemic status demographic characteristics, economic status, racial composition, and state policy.
 
-Through data explorary, most data investigated is clean as numberica type except the black percentage of total population. This information of some states is reported vaguely as less than 0.01, which is replaced as 0 for further work. This could be updated with more precise data with the help of external resources.  
+### Data Exploration
 
-Several transformations have been made for variables a Population density per square miles and White % of Total Population. 
-
-
-### Data Explorary
-Through data explorary, most data investigated is clean as numberica type except the black percentage of total population. This information of some states is reported vaguely as less than 0.01, which is replaced as 0 for further work. This could be updated with more precise data with the help of external resources.  
+Through data exploration, most data investigated is clean as numerical type except the black percentage of total population. This information of some states is reported vaguely as less than 0.01, which is replaced as 0 for further work. This could be updated with more precise data with the help of external resources.  
 
 Several transformations have been made for variables a Population density per square miles and White % of Total Population. Population density is extremely skewed due to the high population density of the District of Columbia.  A logarithm transformation of this variable is of more uniform distribution. In addition, the square of the white percentage of the total population is of a distribution closer to the normal distribution. It also represents the chance that the interaction happens between two white people in practice.
 
-In addition, correlation values of White% and Black %, Percent Unemployed and Percent living under the federal poverty line shows these two groups of variables are correlated respectively. 
-#### 1-a) Varialbe of Case Rate per 100000 is of nearly normal distribution. 
+In addition, correlation values of White% and Black %, Percent Unemployed and Percent living under the federal poverty line shows these two groups of variables are correlated respectively.
+
+### Model 1
+
+For the first model, the relationship between the COVID case rate per 100,000 and the population density per square mile of states was analyzed. First, the distribution of COVID case rate per 100,000 dependent variable is examined.
 
 ```{r}
 summary(df$case_rate_100k)
-
 ```
-
 
 ```{r}
 ggplot(data = df,
   mapping = aes(x= case_rate_100k))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,6000,600)) +
-  labs(title =  "Histogram of Case rate per 100000", x = "Case per 100000", y = 'Count')+
+  labs(title =  "Histogram of COVID Case Rate per 100,000", x = "Cases per 100,000", y = 'Count')+
   scale_x_continuous(breaks=seq(0, 6000, 600))
 ```
 
+As can be seen above, the distribution is fairly normal, and given that it has already been standardized as a rate across all states, there is no need to perform any transformations on this variable. Thus, the case rate per 100,000 variable can be leveraged as is as the dependent variable for all three models.
 
-#### 1-a) Varialbe of Population density per squres 
-The distribution of the Population density per squares clusters at the two ends, which is caused by the extremely high population density of District of Columbia (11496.81) compared to the 50 states.
-While, the logarithm of population density is close to a normal distribution. In addition, an analysis excluding the District of Columbia is another option. 
-
+Next, the distribution of population density per square mile variable is examined.
 
 ```{r}
-summary(df$population_density)
+histogram_of_pdensity <- df %>%
+  ggplot(aes(x = population_density)) + 
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
+  labs(
+    title = 'Distribution of Population Density per Square Mile', 
+    x = 'Population density per square mile', y = 'Count')
+
+histogram_of_pdensity
 ```
+
+As can be seen from the histogram, although most of the population density is concentrated in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is the District of Columbia (D.C.) with a value of 11,496. This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Alternatively, the data point could have been droppped from the sample, but given the already small sample size, it was determined that a better approach would be to keep it within the sample. Once this transformation was performed, it is shown that there is a relatively normal distribution of population densities (see figure below).
+
 ```{r}
-hist_population_dens <- ggplot(data = df,
-  mapping = aes(x= population_density))+
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,12000,500)) +
-  labs(title =  "Histogram of Population density", x = "Population density per square miles", y = 'Count')+
-  scale_x_continuous(breaks=seq(0, 12000, 1200))
+# Find the outlier data points
+outliers <- subset(df, population_density > 4000)
+paste(outliers$State, '=', outliers$population_density)
 
-hist_log_population_dens <- ggplot(data = df, aes(x = log(population_density))) + 
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,10,1)) + 
-  labs(title = 'Histogram of Population density', x = 'Log Population density per square miles', y = 'Count')
+# Transform the variable by taking the logarithm and assign it to a new variable
+df <- df %>% 
+  mutate(l_population_density = log(population_density))
 
-hist_population_dens/hist_log_population_dens
+# Plot the new distribution in a histogram
+histogram_of_pdensity <- df %>%
+  ggplot(aes(x = l_population_density)) + 
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
+  labs(
+    title = 'Figure 2. Distribution of Population Density per Square Mile without D.C.', 
+    x = 'Log of population density per square mile', y = 'Count')
 
+histogram_of_pdensity
 ```
+
+With the appropriate variables transformed, a plot is created to show the relationship between them. 
+
+```{r}
+df %>% 
+  ggplot(aes(l_population_density, case_rate_100k)) + 
+  geom_smooth(se = FALSE) +
+  geom_point() +   
+  labs(
+    title = 'COVID Case Rate due to Population Density', 
+    x = 'Log of population density per square mile', 
+    y = 'COVID case rate per 100,000'
+  )
+```
+
+From the above plot, it can be posited that there is no discernible relationship between the variables given the non-linear relationship. In order to test this, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables.
+
+$$
+Case.Rate.Per.100000 =\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)
+$$
+
+```{r}
+model1 <- lm(case_rate_100k ~ log(population_density) , data = df)
+coeftest(model1, vcov = vcovHC)
+```
+
+From the results of the regression, two things are identified. Firstly, the result of the coefficient is nowhere near significant, and therefore we fail to reject the null hypothesis that there is no correlation between case rate and population density, and there is no detectable effect of the independent variable population density. However, the coefficient of population density appears to be negative, which would concur with the assumption that the higher the population density, the lower the COVID case rate in a state.
+
+### Model 2
+
 #### 2-a) White Percentage of Total Population/ Black Percentage of Total Population
 
 Variable of black percentage is stored as string variables. Moreover, three entries of black percentage of total population is "<0.01", which is to be dropped or replaced by values determined by extra resources for further analysis. 
@@ -238,8 +282,8 @@ ggplot(data = df,
   scale_x_continuous(breaks=seq(0.1, 0.25, 0.05))
 ```
 
+### Model 2 Plots
 
-### Plots
 No obvious trend could be easily observed or concluded from the plots regarding the dependent variables and candidate covariates. 
 
 ```{r}
@@ -313,32 +357,11 @@ df %>%
   )
 ```
 
-### Model Regression
 
 According to the regression results, no coefficients regarding the demographic variables investigated in model 2 are statistically significant. There is no statistically meaningful relationship that could be concluded by now. 
 
-
-#### Model 1-a
-$$
-\begin{aligned}
- Case.Rate.Per.100000 &=\beta_0 +\beta_1 Population.Density.Per.Square.Miles
-\end{aligned}
-$$
-
-```{r}
-model1a <- lm(case_rate_100k ~ population_density, data = df)
-coeftest(model1a, vcov = vcovHC)
-```
-#### Model 1-b
-$$
-Case.Rate.Per.100000 =\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)
-$$
-```{r}
-model1b <- lm(case_rate_100k ~ log(population_density) , data = df)
-coeftest(model1b, vcov = vcovHC)
-```
-
 ### Model-2 Regression
+
 #### Model 2-a
 $$
 \begin{aligned}
@@ -385,8 +408,8 @@ $$
 $$
 
 ```{r}
-model2b <- lm(case_rate_100k ~log(population_density)+ White...of.Total.Population+Percent.living.under.the.federal.poverty.line..2018., data = df)
-coeftest(model2b, vcov = vcovHC)
+model2bi <- lm(case_rate_100k ~log(population_density)+ white_pct+Percent.living.under.the.federal.poverty.line..2018., data = df)
+coeftest(model2bi, vcov = vcovHC)
 ```
 
 $$
@@ -395,8 +418,8 @@ $$
 \end{aligned}
 $$
 ```{r}
-model2b <- lm(case_rate_100k ~log(population_density)+ I((White...of.Total.Population)^2) + Percent.living.under.the.federal.poverty.line..2018., data = df)
-coeftest(model2b, vcov = vcovHC)
+model2bii <- lm(case_rate_100k ~log(population_density)+ I((White...of.Total.Population)^2) + Percent.living.under.the.federal.poverty.line..2018., data = df)
+coeftest(model2bii, vcov = vcovHC)
 ```
 $$
 \begin{aligned}
@@ -404,8 +427,8 @@ $$
 \end{aligned}
 $$
 ```{r}
-model2b <- lm(case_rate_100k ~ Percent.living.under.the.federal.poverty.line..2018., data = df)
-coeftest(model2b, vcov = vcovHC)
+model2biii <- lm(case_rate_100k ~ Percent.living.under.the.federal.poverty.line..2018., data = df)
+coeftest(model2biii, vcov = vcovHC)
 ```
 
 #### Model 2-c
@@ -441,7 +464,7 @@ $$
 model2d <- lm(case_rate_100k ~log(population_density)+ White...of.Total.Population+Percent.living.under.the.federal.poverty.line..2018.+X65., data = df)
 coeftest(model2d, vcov = vcovHC)
 ```
-## Model 2-d
+
 $$
 \begin{aligned}
 Case.Rate.Per.100000=\beta_0 &+\beta_1log(Population.Density.Per.Square.Miles)\\&+\beta_2(White.Percentage.of.total.population)^2\\&+\beta_3(Percen.living.under.the.federal.poverty.line.2018)\\&+\beta_4(65+)
@@ -462,11 +485,9 @@ model2d <- lm(case_rate_100k ~X65., data = df)
 coeftest(model2d, vcov = vcovHC)
 ```
 
+### Model 3 
 
-
-### Model 3 Building Process
-
-    - For Model 3. Policy related variables will be introduced for the analytics. Policy variable "Mandate face mask use by all individuals in public spaces" (renamed as mask_public) is selected as control variable to predict the case rate. Given it has been proved that mask is effective in preventing the transmission of disease, it is expected that the mask policy mandate in public would have an effect in reducing the case rate. 
+For Model 3, policy related variables will be introduced for the analytics. Policy variable "Mandate face mask use by all individuals in public spaces" (renamed as mask_public) is selected as control variable to predict the case rate. Given it has been proved that mask is effective in preventing the transmission of disease, it is expected that the mask policy mandate in public would have an effect in reducing the case rate. 
     There are other variables related to mask such as "No legal enforcement of face mask mandate" and "Mandate face mask use by employees in public-facing businesses", we believe these variables have a lower impact than the policy that is enforced to public. Also, it is very likely that if a state enforce public mask policy, they will by default enforce mask policy for employees in public-facing business. As a result, we believe mask policy for all individuals in public space can be used to effectively represents the policy impact. 
     It is worth to note that, the mask_public is in date format, which has value of zero or a actual date when the policy is enforced. According to the documentation, zero represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For a leaner regression, the date values in mask_public column are transformed as value 1, so that we can distinguish whether states has public mask policy or not. It is also noted that by transforming the variable, some important information will be lost because the actual date (early or late) to enforce the policy can also have an impact to the case rate. However, it is hard to measure the time effect as different states that enforced the public mask policy may have different threshold.
 
@@ -507,8 +528,10 @@ df %>%
 Next, the linear model is created from model 2 with the mask policy variables added for the regression.
 
 ```{r}
-model3 <- lm(case_rate_100k ~ log(population_density) +white_pct+ mask_public_bool, data = df)
-coeftest(model3, vcov = vcovHC)
+model3a <- lm(case_rate_100k ~ log(population_density) + white_pct 
+              + Percent.living.under.the.federal.poverty.line..2018.
+              + mask_public_bool, data = df)
+coeftest(model3a, vcov = vcovHC)
 ```
 
 Evaluation of the business closed variable.
@@ -527,8 +550,8 @@ df %>%
     color = 'Case Rate'
   )
 
-model3 <- lm(case_rate_100k ~ close_period, data = df)
-coeftest(model3, vcov = vcovHC)
+model3b <- lm(case_rate_100k ~ close_period, data = df)
+coeftest(model3b, vcov = vcovHC)
 
 df[is.na(df$business_closed),]
 df[42,'business_closed'] = max(df$business_closed[!is.na(df$business_reopen)])
@@ -546,28 +569,44 @@ df %>%
     color = 'Case Rate'
   )
 
-model3 <- lm(case_rate_100k ~ business_close_diff + mask_public_bool, data = df)
-coeftest(model3, vcov = vcovHC)
+model3c <- lm(case_rate_100k ~ business_close_diff + mask_public_bool, data = df)
+coeftest(model3c, vcov = vcovHC)
 
 ```
 
-### 3. Limitations of the Model
+## 3. Limitations of the Models
 
-The most general requirement for the linear model is that data points be independent and identically distributed (IID). While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. While this is acknowledged to occur, the effect is likely minor compared to the demographic and policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
+Firstly, the most general requirement for the linear model is that data points be independent and identically distributed (IID). While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. In addition in terms of demographics, all states are involved in the same market economy system even though there are economic performance divisions across the states. Moreover, in most states white race is still dominant in the population. Many states share the similar racial composition.  
 
-Secondly, the process being modeled must be described by a linear conditional expectation function of the variables which are included, in order for the linear regression to be valid. This can be assessed after the fact by visualizing the model over the range of each variable alongside the data, or also by visualizing the residuals over the range of each variable. 
+While this is acknowledged to occur, the effect is likely minor compared to the demographic and policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
+Secondly, the process being modeled must be described by a linear conditional expectation function of the variables which are included, in order for the linear regression to be valid. This can be assessed after the fact by visualizing the model over the range of each variable alongside the data, or also by visualizing the residuals over the range of each variable. This can be seen across the three models.
 
-Related to the relationship of the residuals to the data, homoskedasticity can be assessed by visualizing the size of residuals across the range of each variable. Alternatively, it can also be done via the Breusch-Pagan test to more objectively determine whether homoskedasticity is not present in the data. 
+Thirdly, related to the relationship of the residuals to the data, homoscedasticity can be assessed by visualizing the size of residuals across the range of each variable. Alternatively, it can also be done via the Breusch-Pagan test to more objectively determine whether homoscedasticity is not present in the data. 
 
-Perfect colinearity is automatically detected by the R regression algorithms, which drop potential variables if they have complete colinearity with another variable. Near perfect colinearity is more problematic to detect, but a common hint to its existence is large standard errors on colinear features. Conceptually, the variables which may have an important colinearity in the final model are
+Next, perfect colinearity is automatically detected by the R regression algorithms, which drop potential variables if they have complete colinearity with another variable. Near perfect colinearity is more problematic to detect, but a common hint to its existence is large standard errors on colinear features. Conceptually, the variables which may have an important colinearity in the final model are variables such as different percentage make ups of race and ethnicity, or related public policy. These variables are appropriately evaluatea and excluded throughout the model building process.
 
-Finally, normally distributed errors can be easily assessed by a histogram of the residuals around zero. Finally, normally distributed errors can be easily assessed by a histogram of the residuals around zero. 
+Finally, normally distributed errors can be easily assessed by a histogram of the residuals around zero.
 
-#### Limitations of Model 2
+## 4. Regression Table
 
-The I.I.D assumption for CLM is not satisfied perfectly for all the models discussed above, since the states are not isolated from each other. It is impossible that states suffered from pandemic at different levels independently. Actually, the pandemic status across states tends to be highly related to each other. 
+```{r warning=FALSE}
+se.model1 = coeftest(model1, vcov = vcovHC)[ , "Std. Error"]
+se.model2 = coeftest(model2bi, vcov = vcovHC)[ , "Std. Error"]
+#se.model3 = coeftest(model2b, vcov = vcovHC)[ , "Std. Error"]
+#se.model4 = coeftest(model2c, vcov = vcovHC)[ , "Std. Error"]
+#se.model5 = coeftest(model2d, vcov = vcovHC)[ , "Std. Error"]
+se.model6 = coeftest(model3a, vcov = vcovHC)[ , "Std. Error"]
 
-In addition, all states are involved in the same market economy system even though there are economic performance divisions across the states. Moreover, in most states white race is still dominant in the population. Many states share the similar racial composition. 
+stargazer(model1, model2bi, model3a, type = "text", omit.stat = "f",
+          se = list(se.model6),
+          star.cutoffs = c(0.05, 0.01, 0.001), title = "Table 1: The relationship between COVID case rate and population density")
 
+```
 
+## 5. Conclusion
 
+In conclusion, although there is no evidence to show that although there is a direct correlation between the COVID case rate and population density as originally hypothesized in our research question, it can be seen from further development of the models that there is some correlation in other variables examined, namely the mask mandate variable. As can be seen from model 3, the regression model gives a mask mandate variable coefficient with p-value of 0.003058, which is highly significant. The negative coefficient also suggests that the original conjecture that the implementation of mask policies within a state would decrease the COVID case rate was indeed accurate.
+
+Conversely, the hypotheses that population and demographics would have an effect on the COVID case rate was unable to be accepted. Although upon investigating the poverty line percentage variable in model 2 there was a detection of notable adjacency to a significant result with a coefficient value of 0.06286, it was not enough to be truly significant and reject the null hypothesis. Similarly, the relationship of race/ethnicity as well as age on case rate was also insignificant with no apparent correlation.
+
+Given these results in conjunction with the original aim of the research question, it can be suggested that variables that can be controlled (in this case, mask policy) has a greater effect on stymieing the spread of COVID-19 than the variables that may be inherent to a state, such as population density and age/ethnicity demographics. This is a promising insight, as it provides opportunity for states to implement and apply policies to intervene and control the case rate without being worried about its varying effects depending on population characteristics.
