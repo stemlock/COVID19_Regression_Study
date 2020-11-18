@@ -59,7 +59,7 @@ head(df)
 
 For this report, the investigation will be centered around the effect of population metrics such as density and demographics and policy on the COVID case rates across the United States (US), which is grouped by the 50 states plus the District of Columbia (D.C.). This research question aims to measure the case rate per 100,000 residents within each state based on the make-up of the population, as well as the policy decisions that were or were not put into place in order to combat the rise of COVID cases. In this sense, the aim is to measure how dependent the COVID case rate is on that of which cannot be controlled (i.e., population and demographics) vs that of which can be controlled to a certain degree (i.e., implementation of policies to attempt to combat case rate). With this information, one could suggest whether or not the proliferation of COVID can be controlled, and to the level at which these policies help with this control.
 
-This question can be broken up into two distinctive areas of investigation. The first and primary area of investigation involves how the COVID case rate is affected by population metrics. For this, the key variables are COVID case rate per 100,000 residents and the population density per square mile. This will provide an initial understanding in the relationship between the spread of the virus and how densely populated a state is. Following this, the analysis considers variables that address the make-up of these populations, specifically focusing on the distribution of demographics such as race/ethnicity and age. In order to account for the varying population sizes across the states, the variables are operationalized by specifically looking at variables that contain a rate, in order to standardize across the samples. In this sense, the analysis quantifies the spread of COVID by leveraging the COVID case rate per 100,000 rate, and for population demographics it investigates the percentage distribution of the race/ethnicity and age categories (e.g., White % of Total Population).
+This question can be broken up into two distinctive areas of investigation. The first and primary area of investigation involves how the COVID case rate is affected by population metrics. For this, the key variables are COVID case rate per 100,000 residents and the population density per square mile. This will provide an initial understanding in the relationship between the spread of the virus and how densely populated a state is. Following this, the analysis considers variables that address the make-up of these populations, specifically focusing on the distribution of demographics such as race/ethnicity and age. In order to account for the varying population sizes across the states, the variables are operationalized by specifically looking at variables that contain a rate, in order to standardize across the samples. In this sense, the analysis quantifies the spread of COVID by leveraging the COVID case rate per 100,000 rate, and for population demographics it investigates the percentage distribution of the race/ethnicity and age categories (e.g., white percentage of total population).
 
 The secondary area of investigation will be to also include variables that measure policy implementation within states, and to compare the effect of these as opposed to the primary area of investigation that is population metrics. Specifically, there is a focus on policies that address the mandates of wearing masks within the state. Through this, the aim is to analyze whether the implementation of mask related policies will have an effect on case rate, as well as the degree of this effect relative to population metrics. To operationalize these policies and simplifying the measurements, the models will only consider whether or not these policies were implemented through indicator variables (1 = implemented, 0 = not implemented).
 
@@ -116,13 +116,13 @@ Demographics:
  - Hispanic Percentage of Total Population, 
  - Other Percentage of Total Population
  
-Currently, Case rate per 100,000 is chosen as a dependent variable to represent the pandemic status in each state. Variables such as population density per square miles, unemployed (2018)/percentage living under the federal poverty line (2018), white/black percentage of of total Population, percentage of seniors(65+), and mask mandate policies are chosen as candidate covariates to explore potential relationships between pandemic status demographic characteristics, economic status, racial composition, and state policy.
+Currently, Case rate per 100,000 is chosen as a dependent variable to represent the pandemic status in each state. Variables such as population density per square miles, unemployed percentage(2018)/percentage living under the federal poverty line(2018), white/black percentage of total population, percentage of seniors(65+), and mask mandate policies are chosen as candidate covariates to explore potential relationships between pandemic status demographic characteristics, economic status, racial composition, and state policy.
 
 ### Data Exploration
 
 Through data exploration, most data investigated is clean as numerical type except the black percentage of total population. This information of some states is reported vaguely as less than 0.01, which is replaced as 0 for further work. This could be updated with more precise data with the help of external resources.  
 
-Several transformations have been made for variables a Population density per square miles and White % of Total Population. Population density is extremely skewed due to the high population density of the District of Columbia.  A logarithm transformation of this variable is of more uniform distribution. In addition, the square of the white percentage of the total population is of a distribution closer to the normal distribution. It also represents the chance that the interaction happens between two white people in practice.
+Several transformations have been made for variables as population density per square miles and white percentage of total population. Population density is extremely skewed due to the high population density of the District of Columbia. A logarithm transformation of this variable is of more uniform distribution. In addition, the square of the white percentage of the total population is of a distribution closer to the normal distribution. It also represents the chance that the interaction happens between two white people in practice.
 
 In addition, correlation values of white percentage and black percentage, unemployed percentage and percentage living under the federal poverty line shows these two groups of variables are correlated respectively.
 
@@ -208,6 +208,8 @@ coeftest(model1, vcov = vcovHC)
 From the results of the regression, two things are identified. Firstly, the result of the coefficient is nowhere near significant, and therefore we fail to reject the null hypothesis that there is no correlation between case rate and population density, and there is no detectable effect of the independent variable population density. However, the coefficient of population density appears to be negative, which would concur with the assumption that the higher the population density, the lower the COVID case rate in a state.
 
 ### Model 2
+
+For model 2, state demographic information regarding racial composition(white percentage of total population /Black Percentage of Total Population), economic status(unemployed percentage/poverty percentage), and population seniors percentage was investigated to explore its potential connection to the COVID pandemic status. 
 
 #### 2-a) White Percentage of Total Population/ Black Percentage of Total Population
 
@@ -366,9 +368,10 @@ df %>%
   )
 ```
 
-According to the regression results, no coefficients regarding the demographic variables investigated in model 2 are statistically significant. There is no statistically meaningful relationship that could be concluded by now. 
+
 
 ### Model 2 Regression
+The regression models regarding the demographic variables discussed previously are listed as below.However, no coefficients regarding these variables in model 2 are statistically significant.
 
 #### Model 2-a
 
@@ -429,6 +432,8 @@ $$
 model2d <- lm(case_rate_100k ~log10(population_density)+ senior_pct, data = df)
 coeftest(model2d, vcov = vcovHC)
 ```
+
+From the results of the regression, none of the coefficients of investigated variables in model 2 are significant (p-value < 0.05). Among these regression coefficient tests,  the p-value regarding the poverty percentage variable is the lowest (0.05755).  In addition, its positive estimated coefficient is consistent with the statement that low-income communities are at high pandemic risk claimed by mainstream media these days. 
 
 ### Model 3 
 
@@ -606,6 +611,6 @@ As a note, it should be stressed that the models and variables included in this 
 
 In conclusion, although there is no evidence to show that although there is a direct correlation between the COVID case rate and population density as originally hypothesized in our research question, it can be seen from further development of the models that there is some correlation in other variables examined, namely the mask mandate variable. As can be seen from model 3, the regression model gives a mask mandate variable coefficient with p-value of 0.003058, which is highly significant. The negative coefficient also suggests that the original conjecture that the implementation of mask policies within a state would decrease the COVID case rate was indeed accurate. 
 
-Conversely, the hypotheses that population and demographics would have an effect on the COVID case rate was unable to be accepted. Although upon investigating the poverty line percentage variable in model 2 there was a detection of notable adjacency to a significant result (and an actual significant result when using the `stargazer` package to compute the regression table) with a coefficient value of 0.06286, it was not enough to be truly significant and reject the null hypothesis. Similarly, the relationship of race/ethnicity as well as age on case rate was also insignificant with no apparent correlation.
+Conversely, the hypotheses that population and demographics would have an effect on the COVID case rate was unable to be accepted. Although upon investigating the poverty percentage variable in model 2 there was a detection of notable adjacency to a significant result (and an actual significant result when using the `stargazer` package to compute the regression table) with a p-value of 0.05755, it was not enough to be truly significant and reject the null hypothesis. Similarly, the relationship of race/ethnicity as well as age on case rate was also insignificant with no apparent correlation.
 
 Given these results in conjunction with the original aim of the research question, it can be suggested that variables that can be controlled (in this case, mask policy) has a greater effect on stymieing the spread of COVID-19 than the variables that may be inherent to a state, such as population density and age/ethnicity demographics. This is a promising insight, as it provides opportunity for states to implement and apply policies to intervene and control the case rate without being worried about its varying effects depending on population characteristics. However, it should once again be stressed that the final report may include and analyze alternative variables and apply them to different models based on the findings from this draft report, which as a result may also lead to more concrete or slightly varied insights.
