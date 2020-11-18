@@ -1,6 +1,6 @@
 ---
-title: "Draft Report"
-author: "203 Section 6, Team 1"
+title: "Lab 2 Draft Report: COVID-19 Case Rate vs Population and Policy"
+author: "Aidan Jackson, Frank Liu, Sam Temlock, Haoyu Zhang"
 output:
   pdf_document: default
   html_document:
