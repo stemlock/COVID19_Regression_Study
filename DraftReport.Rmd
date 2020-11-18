@@ -465,6 +465,7 @@ df %>%
     color = 'Case Rate'
   )
 ```
+
 #### Model 3-a
 Next, the linear model is created from model 2 with the mask policy variables added for the regression. The regression coefficient shows that Mask_public_bool variable is highly significant. The result suggests that public mask mandate policy has postive effect in bringing the case number down.
 
@@ -474,6 +475,7 @@ model3a <- lm(case_rate_100k ~ log10(population_density)
               + mask_public_bool, data = df)
 coeftest(model3a, vcov = vcovHC)
 ```
+
 #### Model 3-b&c
 Considering that there could be multiple policy variables that are relevant to predicting the case number. We have also examined the "Closed.other.non.essential.businesses" variable (renamed as "business_closed") which represents the date when the state issued closure of non-essential businesses. As "business_closed" is a date variable, a transformation was performed to convert the date into a variable "business_close_diff" which represents the days difference between the business close date of the state compared to the average date of all the states.
 ```{r}
@@ -489,7 +491,7 @@ df %>%
   geom_point() + 
   geom_smooth(se = FALSE) +
   labs(
-    title = 'Case Rate vs Mask Public Mandate', 
+    title = 'Case Rate vs Non-Essential Business Close Date difference compared to Average', 
     x = 'Non-Essential Business Close Date difference compared to Average', 
     y = 'Case Rate', 
     color = 'Case Rate'
@@ -497,12 +499,14 @@ df %>%
 ```
 
 By running the model with "business_close_diff" against case rate variable, the coefficient shows that the variable is significant.
+
 ```{r}
 model3b <- lm(case_rate_100k ~ business_close_diff, data = df)
 coeftest(model3b, vcov = vcovHC)
 ```
+
 However, the regression with both policy variables "mask_pubic_bool" and "business_close_diff" shows that neither the the variable is significant. 
-```
+```{r}
 model3c <- lm(case_rate_100k ~ business_close_diff + mask_public_bool, data = df)
 coeftest(model3c, vcov = vcovHC)
 ```
