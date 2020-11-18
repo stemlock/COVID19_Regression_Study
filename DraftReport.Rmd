@@ -2,9 +2,9 @@
 title: "Draft Report"
 author: "203 Section 6, Team 1"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 ---
 
  **Initial reassignment of common data used across models:**
@@ -56,7 +56,7 @@ head(df)
 
 **Research Question:** How is the COVID case rate related to the population density and distribution of demographics of a state? How does the effect of population make-up on case rate compare with the effect of policy decisions made in each state?"
 
-For this report, the investigation will be centered around the effect of population metrics such as density and demographics and policy on the COVID case rates across the United States (US), which is grouped by the 50 states plus the District of Columbia (D.C.). This research question aims to measure the case rate per 100,000 residents within each state based on the make-up of the population, as well as the policy decisions that were or were not put into place in order to combat the rise of COVID cases. In this sense, the aim is to measure how dependent the COVID case rate is on that of which cannot be controlled (i.e., population and demographics) vs that of which can be controlled to a certain degree (i.e., implementation of policies to attempt to combat cases). With this information, one could suggest whether or not the proliferation of COVID can be controlled, and to the level at which these policies help with this control.
+For this report, the investigation will be centered around the effect of population metrics such as density and demographics and policy on the COVID case rates across the United States (US), which is grouped by the 50 states plus the District of Columbia (D.C.). This research question aims to measure the case rate per 100,000 residents within each state based on the make-up of the population, as well as the policy decisions that were or were not put into place in order to combat the rise of COVID cases. In this sense, the aim is to measure how dependent the COVID case rate is on that of which cannot be controlled (i.e., population and demographics) vs that of which can be controlled to a certain degree (i.e., implementation of policies to attempt to combat case rate). With this information, one could suggest whether or not the proliferation of COVID can be controlled, and to the level at which these policies help with this control.
 
 This question can be broken up into two distinctive areas of investigation. The first and primary area of investigation involves how the COVID case rate is affected by population metrics. For this, the key variables are COVID case rate per 100,000 residents and the population density per square mile. This will provide an initial understanding in the relationship between the spread of the virus and how densely populated a state is. Following this, the analysis considers variables that address the make-up of these populations, specifically focusing on the distribution of demographics such as race/ethnicity and age. In order to account for the varying population sizes across the states, the variables are operationalized by specifically looking at variables that contain a rate, in order to standardize across the samples. In this sense, the analysis quantifies the spread of COVID by leveraging the COVID case rate per 100,000 rate, and for population demographics it investigates the percentage distribution of the race/ethnicity and age categories (e.g., White % of Total Population).
 
@@ -68,7 +68,7 @@ Firstly, it is important to note that given each state (with the addition of the
 
 Secondly, note that there are many internal and external aspects of the selected variables that have not been included within the models. Just addressing the internal information that is lost, it can be seen that much of the information is not captured given the methods of operationalization. Among others, the loss of date-related information within policy implementation variables strips out any contextual knowledge regarding the length of policy implementation, and precludes the identification of how long a specific policy was implemented. Assuming that policy implementation has some effect on case rate, this difference in length of time could play a large part in the effect. There are also other external aspects that cannot be included, such as the level of population density broken out among different population demographics. 
 
-Finally, with regard to the policy variables, this report focuses solely on mask mandates. Given this, it does not capture the effect of other policies that may or may not have a greater effect on the case rate (e.g., implementation of stay-at-home orders). This follows for the population-related variables, as they capture race/ethnicity and poverty, but not other characteristics such as proportions of residents with pre-existing conditions. In justification, these choices were largely made due to there either being an appropriate amount of samples in each category (e.g., most states have implemented basic policies such as the closure of non-essential businesses and the implementation of stay-at-home orders, and thus these were not included given the lack of samples for the states that have not implemented them), or that data on other policies or demographic measures were simply not readily available in the dataset.
+Finally, with regard to the policy variables, this report focuses mainly on mask mandates. Given this, it does not capture the effect of other policies that may or may not have a greater effect on the case rate (e.g., implementation of stay-at-home orders). This follows for the population-related variables, as they capture race/ethnicity and poverty, but not other characteristics such as proportions of residents with pre-existing conditions. In justification, these choices were largely made due to there either being an appropriate amount of samples in each category (e.g., most states have implemented basic policies such as the closure of non-essential businesses and the implementation of stay-at-home orders, and thus these were not included given the lack of samples for the states that have not implemented them), or that data on other policies or demographic measures were simply not readily available in the dataset.
 
 ## 2. A Model Building Process
 
@@ -215,7 +215,6 @@ Here, the value of black percentage is replaced by 0 when it is "<0.01". Afterwa
 
 The distribution of the white % is skewed, not an ideal normal distribution. While the distribution of the square of white % is more close to a normal distribution. In practice, this square could reflect the chance that the interaction happens between two white people. 
 
-
 ```{r}
 black_num <- as.numeric(df$black_population_pct)
 black_num[is.na(black_num)]<- 0
@@ -242,7 +241,7 @@ ggplot(data = df,
   scale_x_continuous(breaks=seq(0, 1, 0.1))
 ```
 
-#### 2-b) Percentage living under the federal poverty line(2018)
+#### 2-b) Percentage living under the federal poverty line (2018)
 
 Correlation of pecentage living under poverty line and white percentage of total population shows that they are not significantly related. The distribution of the poverty percentage is not heavily skewed. 
 
@@ -258,7 +257,9 @@ ggplot(data = df,
   labs(title =  "Histogram of Poverty Percentage", x = "Percentage living under poverty line(2018)", y = 'Count')+
   scale_x_continuous(breaks=seq(6, 21, 1))
 ```
+
 #### 2-c) Unemployed Percentage (2018)
+
 Although, the distribution is of high peak in the middle of the range. Overall, it is not highly skewed or heavily tailed. In addition, the unemployed rate is correlated to the variable to the poverty rate, which is in an agreement with intuitive expectation. 
 
 ```{r}
@@ -273,12 +274,14 @@ ggplot(data = df,
   scale_x_continuous(breaks=seq(0, 10, 1))
 ```
 
-#### 2-d) Seniors Percentage(Age 65+)
+#### 2-d) Seniors Percentage (Age 65+)
+
 The seniors percentage (age 65+) is of a nearly normal distribution.
 
 ```{r}
 summary(df$senior_pct)
 ```
+
 ```{r}
 ggplot(data = df,
   mapping = aes(x= senior_pct))+
@@ -303,6 +306,7 @@ df %>%
     color = 'Log 10 of population density'
   )
 ```
+
 ```{r}
 df %>% 
   ggplot(aes(x = white_population_pct, y = case_rate_100k, color = poverty_pct)) + 
@@ -315,6 +319,7 @@ df %>%
     color = 'Poverty percentage'
   )
 ```
+
 ```{r}
 df %>% 
   ggplot(aes(x = poverty_pct , y = case_rate_100k, color = log10(population_density))) + 
@@ -327,7 +332,6 @@ df %>%
     color = 'Log 10 of population density'
   )
 ```
-
 
 ```{r}
 df %>% 
@@ -355,27 +359,23 @@ df %>%
   )
 ```
 
-
 According to the regression results, no coefficients regarding the demographic variables investigated in model 2 are statistically significant. There is no statistically meaningful relationship that could be concluded by now. 
 
 ### Model-2 Regression
 
 #### Model 2-a
+
 $$
 \begin{aligned}
  Case.Rate.Per.100000 =\beta_0 &+\beta_1 log(Population.Density.Per.Square.Miles)\\&+\beta_2(White.Percentage.of.Total.Population)
 \end{aligned}
 $$
 
-
-
 ```{r}
 model2a <- lm(case_rate_100k ~ log10(population_density)+ white_population_pct, data = df)
 coeftest(model2a, vcov = vcovHC)
 
 ```
-
-
 
 $$
 \begin{aligned}
@@ -388,7 +388,6 @@ coeftest(model2a, vcov = vcovHC)
 ```
 
 #### Model 2-b
-
 
 $$
 \begin{aligned}
@@ -432,8 +431,8 @@ There are other variables related to mask such as "No legal enforcement of face 
     
 It is worth to note that, the mask_public is in date format, which has value of zero or a actual date when the policy is enforced. According to the documentation, zero represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For a leaner regression, the date values in mask_public column are transformed as value 1, so that we can distinguish whether states has public mask policy or not. It is also noted that by transforming the variable, some important information will be lost because the actual date (early or late) to enforce the policy can also have an impact to the case rate. However, it is hard to measure the time effect as different states that enforced the public mask policy may have different threshold.
 
-
 Firstly, "mask_public_bool" column is created from "mask_public", with 1 represents that the state has a pulbic mask policy, and 0 means there's no explicit public mask policy from the state.
+
 ```{r}
 
 df <- df %>% 
@@ -447,13 +446,14 @@ head(df)
 ```
 
 Histograms below that shows the distribution of states that has public mask policy or not. Both distributions exhibits certain degree of normality. 
+
 ```{r}
 hist(df$case_rate_100k[df$mask_public_bool == 1], xlab='Case Rate', ylab='Count', main='Case Rate - Mask Mandate in Public')
 hist(df$case_rate_100k[df$mask_public_bool == 0], xlab='Case Rate', ylab='Count', main='Case Rate  - No Mask Mandate in Public')
 ```
 
-
 A plot that shows the relationship between different policies vs case rate.
+
 ```{r}
 df %>% 
   ggplot(aes(x = mask_public_bool, y = case_rate_100k, color = case_rate_100k)) + 
@@ -467,6 +467,7 @@ df %>%
 ```
 
 #### Model 3-a
+
 Next, the linear model is created from model 2 with the mask policy variables added for the regression. The regression coefficient shows that Mask_public_bool variable is highly significant. The result suggests that public mask mandate policy has postive effect in bringing the case number down.
 
 ```{r}
@@ -477,14 +478,16 @@ coeftest(model3a, vcov = vcovHC)
 ```
 
 #### Model 3-b&c
-Considering that there could be multiple policy variables that are relevant to predicting the case number. We have also examined the "Closed.other.non.essential.businesses" variable (renamed as "business_closed") which represents the date when the state issued closure of non-essential businesses. As "business_closed" is a date variable, a transformation was performed to convert the date into a variable "business_close_diff" which represents the days difference between the business close date of the state compared to the average date of all the states.
-```{r}
 
+Considering that there could be multiple policy variables that are relevant to predicting the case number. We have also examined the "Closed.other.non.essential.businesses" variable (renamed as "business_closed") which represents the date when the state issued closure of non-essential businesses. As "business_closed" is a date variable, a transformation was performed to convert the date into a variable "business_close_diff" which represents the days difference between the business close date of the state compared to the average date of all the states.
+
+```{r}
 df$business_close_diff =as.numeric(df$business_closed-mean(df$business_closed, na.rm=TRUE))
 head(df)
 ```
 
 From the plot of business close date difference against case rate, the graph shows that there is some degree of linearity between the two variables.
+
 ```{r warning=FALSE}
 df %>% 
   ggplot(aes(x = business_close_diff, y = case_rate_100k, color = business_close_diff)) + 
@@ -506,6 +509,7 @@ coeftest(model3b, vcov = vcovHC)
 ```
 
 However, the regression with both policy variables "mask_pubic_bool" and "business_close_diff" shows that neither the the variable is significant. 
+
 ```{r}
 model3c <- lm(case_rate_100k ~ business_close_diff + mask_public_bool, data = df)
 coeftest(model3c, vcov = vcovHC)
@@ -518,6 +522,7 @@ The findings above suggests that there is colinearity between the two variables 
 Firstly, the most general requirement for the linear model is that data points be independent and identically distributed (IID). While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. In addition, all states are involved in the same market economy system of the country to varying degrees, even though there are economic performance divisions across the states. Likewise, certain regions of the country may also have similar racial compositions due to a shared history across general geographic regions. While this is acknowledged to occur, the effect is likely minor compared to the policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
 
 Secondly, the process being modeled must be described by a linear conditional expectation function of the variables which are included, in order for the linear regression to be valid. This can be assessed after the fact by visualizing the model over the range of each variable alongside the data, or also by visualizing the residuals over the range of each variable. For the purpose of this assumption and other model or data related assumptions, only the Model 3A will be used as it is the most inclusive. 
+
 ```{r}
 avg_pop <- log10(mean(df$population_density))
 avg_pov <- mean(df$poverty_pct)
@@ -552,15 +557,18 @@ df %>%
     color = 'Mask Mandate'
   )
 ```
+
 Linearity for the three regressed variables is demonstrated above. As can be seen when mask policy and population density are varied, the data generally follows a linear trend. This is similar when the poverty percentage is varied, although at higher levels of poverty the presence of a mask mandate made the case rate unexpectedly low. It appears that possible a negative quadratice function may fit the data better, although it appears close enough to linear that this assumption may hold. 
 
 Thirdly, related to the relationship of the residuals to the data, homoscedasticity can be assessed by visualizing the size of residuals across the range of each variable. Alternatively, it can also be done via the Breusch-Pagan test to more objectively determine whether homoscedasticity is not present in the data. Using the first method with the plots above, the residuals to each of the four regressions appear to be evenly spread throughout the range of the x axis. Therefore, this assumption can also be reasonably assumed to be met. The normal distribution of these errors also appears to be well met by the linear models, with most data points close to their respective line causing most residuals to be centered around zero.
 
 Finally, perfect colinearity is automatically detected by the R regression algorithms, which drop potential variables if they have complete colinearity with another variable. Near perfect colinearity is more problematic to detect, but a common hint to its existence is large standard errors on colinear features. In Model 3A, all of the standard errors for model coefficients are at least less than half of the value of the coefficient itself. Therefore, near-perfect colinearity can be assumed to not be taking place between these variables. Conceptually, the variables which may have an important colinearity in the final model are variables such as different percentage make ups of race and ethnicity, or related public policy. These variables are appropriately evaluated and excluded throughout the model building process.
 
-
-
 ## 4. Regression Table
+
+Although there were several versions of models created for model 2 and 3, through the analysis of the appropriate variables respective to each model a single model version was selected to be included in the regression table. This was determined based on factors of significance when investigating the effect relationship of these variables on the outcome variable, which is detailed in section 2. 
+
+For the regression table below, model 1, model 2b, and model 3a were selected as the most significant models to include.
 
 ```{r warning=FALSE}
 se.model1 = coeftest(model1, vcov = vcovHC)[ , "Std. Error"]
@@ -573,16 +581,21 @@ stargazer(model1, model2b, model3a, type = "text", omit.stat = "f",
 
 ```
 
-- Discuss variables included and not included in the model
-- Talk about Adjusted R2
-- Talk about significant variables in the table
-- Provide a statement that the table may change in the final report with more variables and maybe different key variables (case rate and population density)
+When observing the table above, three elements stand out.
 
+Firstly, there is a difference in the calculated standard error between the coefficient test run on the linear models and the regression table. Taking a look at the standard error for the poverty percentage coefficient, the value in the table returns a significant result with a standard error of 55.125, as opposed to the insignificant result of a standard error of 57.684. This follows for model 3, with the table showing a significant result with standard error of 50.872, as opposed to an insignificant result of a standard error of 59.583. 
+
+Secondly, following the first observation, when designating the poverty percentage variable as significant, the regression table suggests that both covariate variables (including the mask mandate variable) are indeed significant with the COVID case rate. For the poverty percentage effect, the coefficient highlights that there is a positive correlation between the poverty percentage and case rate (as poverty percentage increases, so does case rate). The practical significance of this shows that for every percentage increase of population below the federal poverty line, there is an increase of roughly 112 cases per 100k for model 2, and roughly 104 cases per 100k for model 3. As for the mask mandate variable, the coeeficient highlights a negative correlation between it and the case rate (if the mask mandate is implemented, the case rate decreases). The practical significance is such that if the mask mandate has been implemented, the case rate per 100k will decrease by roughly 1000 cases.
+
+Thirdly, we notice that the R2 value increases by a large value for every additional variable that is included within the model. Initially, we start with a very low R2 value, suggesting that almost no variance is explained in model 1. However, although still low, there is close to a 9 times increase in the amount of variance that is explained in model 2. Finally, in model 3, the R2 value increases by roughly 2.75 times the previous value, and a decent amount of the variance can be seen to be explained by the model. The adjusted R2 that accounts for the increase in number of variable terms in the model also correspondingly increases as the covariates are added.
+
+As a note, it should be stressed that the models and variables included in this regression table may change when the final report is created to provide a more descriptive analysis of the original research question.
 
 ## 5. Conclusion
 
-In conclusion, although there is no evidence to show that although there is a direct correlation between the COVID case rate and population density as originally hypothesized in our research question, it can be seen from further development of the models that there is some correlation in other variables examined, namely the mask mandate variable. As can be seen from model 3, the regression model gives a mask mandate variable coefficient with p-value of 0.003058, which is highly significant. The negative coefficient also suggests that the original conjecture that the implementation of mask policies within a state would decrease the COVID case rate was indeed accurate.
+In conclusion, although there is no evidence to show that although there is a direct correlation between the COVID case rate and population density as originally hypothesized in our research question, it can be seen from further development of the models that there is some correlation in other variables examined, namely the mask mandate variable. As can be seen from model 3, the regression model gives a mask mandate variable coefficient with p-value of 0.003058, which is highly significant. The negative coefficient also suggests that the original conjecture that the implementation of mask policies within a state would decrease the COVID case rate was indeed accurate. 
 
-Conversely, the hypotheses that population and demographics would have an effect on the COVID case rate was unable to be accepted. Although upon investigating the poverty line percentage variable in model 2 there was a detection of notable adjacency to a significant result with a coefficient value of 0.06286, it was not enough to be truly significant and reject the null hypothesis. Similarly, the relationship of race/ethnicity as well as age on case rate was also insignificant with no apparent correlation.
+Conversely, the hypotheses that population and demographics would have an effect on the COVID case rate was unable to be accepted. Although upon investigating the poverty line percentage variable in model 2 there was a detection of notable adjacency to a significant result (and an actual significant result when using the `r stargazer` to compute the regression table) with a coefficient value of 0.06286, it was not enough to be truly significant and reject the null hypothesis. Similarly, the relationship of race/ethnicity as well as age on case rate was also insignificant with no apparent correlation.
 
-Given these results in conjunction with the original aim of the research question, it can be suggested that variables that can be controlled (in this case, mask policy) has a greater effect on stymieing the spread of COVID-19 than the variables that may be inherent to a state, such as population density and age/ethnicity demographics. This is a promising insight, as it provides opportunity for states to implement and apply policies to intervene and control the case rate without being worried about its varying effects depending on population characteristics.
+Given these results in conjunction with the original aim of the research question, it can be suggested that variables that can be controlled (in this case, mask policy) has a greater effect on stymieing the spread of COVID-19 than the variables that may be inherent to a state, such as population density and age/ethnicity demographics. This is a promising insight, as it provides opportunity for states to implement and apply policies to intervene and control the case rate without being worried about its varying effects depending on population characteristics. However, it should once again be stressed that the final report may include and analyze alternative variables and apply them to different models based on the findings from this draft report, which as a result may also lead to more concrete or slightly varied insights.
+
