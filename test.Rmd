@@ -1,0 +1,137 @@
+---
+title: "TEST"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lmtest)
+library(sandwich)
+library(tidyverse)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+library(stargazer)
+library(tinytex)
+library(dplyr)
+library(car)
+```
+
+```{r variables, warning=FALSE, results='hide'}
+df <- read.csv("covid-19.csv", header = TRUE)
+df<-df%>%
+  rename(case_rate_100k = 'Case.Rate.per.100000',
+         death_rate_100k = 'Death.Rate.per.100000',
+         population_density = 'Population.density.per.square.miles',
+         white_pct = 'White...of.Cases',
+         black_pct = 'Black...of.Cases',
+         hispanic_pct = 'Hispanic...of.Cases',
+         other_pct = 'Other...of.Cases',
+         state_emergency = 'State.of.emergency',
+         business_closed = 'Closed.other.non.essential.businesses',
+         business_reopen = 'Began.to.reopen.businesses.statewide',
+         mask_public='Mandate.face.mask.use.by.all.individuals.in.public.spaces',
+         mask_legal='No.legal.enforcement.of.face.mask.mandate',
+         black_population_pct ="Black...of.Total.Population",
+         white_population_pct = "White...of.Total.Population",
+         poverty_pct = "Percent.living.under.the.federal.poverty.line..2018.",
+         unemployed_pct = "Percent.Unemployed..2018.",
+         senior_pct = "X65.",
+         population_2018 = "Population.2018", ## extra variable in test
+         non_elderly_pre_existing = "Nonelderly.Adults.Who.Have.A.Pre.Existing.Condition",
+         homeless = "Number.Homeless..2019."
+         ) %>%
+  select(State, case_rate_100k, death_rate_100k,population_density, white_pct, black_pct, hispanic_pct, 
+         other_pct, state_emergency, business_closed, business_reopen, mask_public, mask_legal, 
+         black_population_pct, white_population_pct, poverty_pct, unemployed_pct, senior_pct,
+         population_2018, non_elderly_pre_existing, homeless)## extra variable in test
+# Assign correct data types
+cols.num <- c("white_pct","black_pct","hispanic_pct","other_pct")
+df[cols.num] <- sapply(df[cols.num],as.numeric)
+df$state_emergency=as.Date(df$state_emergency, format = "%m/%d/%Y")
+df$business_closed=as.Date(df$business_closed, format = "%m/%d/%Y")
+df$business_reopen=as.Date(df$business_reopen, format = "%m/%d/%Y")
+head(df)
+```
+"Average social distance": average area of the square shape each people occupies, the length of such square is assumed to the average social distance(meter)
+1 square miles = 2589988.11 square meters
+```{r}
+df<-df %>%
+  mutate(
+    homeless_pct = homeless/population_2018,
+    noneld_pre_existing_pct = non_elderly_pre_existing/population_2018,
+    avg_distance = sqrt(2589988.11/population_density),
+    area_per_capita = 2589911.11/population_density
+  )
+```
+
+```{r}
+ggplot(data = df,
+  mapping = aes(x= homeless_pct))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks=seq(0,0.05,0.001)) +
+  labs(title =  "Homeless percentage", x = "Homeless percentage", 
+       y = 'Count')#+
+  #scale_x_continuous(breaks=seq(0.1, 0.25, 0.05)
+```
+```{r}
+ggplot(data = df,
+  mapping = aes(x= noneld_pre_existing_pct))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks=seq(0.1,0.25,0.01)) +
+  labs(title =  "Non-elderly pre-existing condition percentage", x = "percentage", y = 'Count')
+  #+scale_x_continuous(breaks=seq(0.1, 0.25, 0.05))
+```
+```{r}
+hist_log_distance <- ggplot(data = df,
+  mapping = aes(x= log(avg_distance)))+
+  geom_histogram(fill = 'skyblue', color = 'grey30') +
+  labs(title =  "log of Average distabce", x = "log of Meter", 
+       y = 'Count')
+
+hist_distance <- ggplot(data = df,
+  mapping = aes(x= avg_distance))+
+  geom_histogram(fill = 'skyblue', color = 'grey30') +
+  labs(title =  "Average distabce", x = "Meter", 
+       y = 'Count')
+
+hist_log_distance/hist_distance
+```
+```{r}
+hist_log_area <- ggplot(data = df,
+  mapping = aes(x= log(area_per_capita)))+
+  geom_histogram(fill = 'skyblue', color = 'grey30') +
+  labs(title =  "log of Average area", x = "log of Meter^2", 
+       y = 'Count')
+
+hist_area <- ggplot(data = df,
+  mapping = aes(x= area_per_capita))+
+  geom_histogram(fill = 'skyblue', color = 'grey30') +
+  labs(title =  "Average area", x = "Meter^2", 
+       y = 'Count')
+
+hist_log_area/hist_area
+```
+```{r}
+model_test <- lm(case_rate_100k ~ log(avg_distance) + poverty_pct + noneld_pre_existing_pct + senior_pct + unemployed_pct+ white_population_pct, data = df)
+coeftest(model_test)
+vif(model_test)
+plot(model_test, which = 3)
+```
+
+```{r}
+model_test_b <- lm(case_rate_100k ~ log(population_density) + poverty_pct + noneld_pre_existing_pct + senior_pct + unemployed_pct+ white_population_pct, data = df)
+coeftest(model_test_b)
+vif(model_test_b)
+plot(model_test_b, which = 3)
+```
+```{r}
+model_test_b <- lm(case_rate_100k ~   poverty_pct + senior_pct + unemployed_pct, data = df)
+coeftest(model_test_b, vcov = vcovHC)
+vif(model_test_b)
+plot(model_test_b, which = 3)
+```
+```{r}
+model_test_b <- lm(case_rate_100k ~   noneld_pre_existing_pct+poverty_pct + senior_pct + unemployed_pct, data = df)
+coeftest(model_test_b, vcov = vcovHC)
+vif(model_test_b)
+plot(model_test_b, which = 3)
+```
