@@ -574,10 +574,48 @@ df %>%
 ```
 
 Linearity for the three regressed variables is demonstrated above. As can be seen when mask policy and population density are varied, the data generally follows a linear trend. This is similar when the poverty percentage is varied, although at higher levels of poverty the presence of a mask mandate made the case rate unexpectedly low. It appears that possible a negative quadratice function may fit the data better, although it appears close enough to linear that this assumption may hold. 
+```{r}
+df %>% {
+   ggplot(mapping = aes(x = log(df$population_density), y = model3a$residuals)) +
+      geom_point() + stat_smooth(se = TRUE) +
+      ggtitle("Model Residuals versus Population Density") +
+      xlab("Logarithm of Population Density") +
+      ylab("Residual")
+}
+df %>% {
+   ggplot(mapping = aes(x = df$poverty_pct, y = model3a$residuals)) +
+      geom_point() + stat_smooth(se = TRUE) +
+      ggtitle("Model Residuals versus Poverty Percentage") +
+      xlab("Poverty Percentage (%)") +
+      ylab("Residual")
+}
+df %>% {
+   ggplot(mapping = aes(x = log(df$mask_public_bool), y = model3a$residuals)) +
+      geom_point() + stat_smooth(se = TRUE) +
+      ggtitle("Model Residuals versus Mask Mandate") +
+      xlab("Public Mask Mandate") +
+      ylab("Residual")
+}
+```
 
 Thirdly, related to the relationship of the residuals to the data, homoscedasticity can be assessed by visualizing the size of residuals across the range of each variable. Alternatively, it can also be done via the Breusch-Pagan test to more objectively determine whether homoscedasticity is not present in the data. Using the first method with the plots above, the residuals to each of the four regressions appear to be evenly spread throughout the range of the x axis. Therefore, this assumption can also be reasonably assumed to be met. The normal distribution of these errors also appears to be well met by the linear models, with most data points close to their respective line causing most residuals to be centered around zero.
 
-Finally, perfect colinearity is automatically detected by the R regression algorithms, which drop potential variables if they have complete colinearity with another variable. Near perfect colinearity is more problematic to detect, but a common hint to its existence is large standard errors on colinear features. In Model 3-a, all of the standard errors for model coefficients are at least less than half of the value of the coefficient itself. Therefore, near-perfect colinearity can be assumed to not be taking place between these variables. Conceptually, the variables which may have an important colinearity in the final model are variables such as different percentage make ups of race and ethnicity, or related public policy. These variables are appropriately evaluated and excluded throughout the model building process.
+Perfect colinearity is automatically detected by the R regression algorithms, which drop potential variables if they have complete colinearity with another variable. Near perfect colinearity is more problematic to detect, but a common hint to its existence is large standard errors on colinear features. In Model 3-a, all of the standard errors for model coefficients are at least less than half of the value of the coefficient itself. Therefore, near-perfect colinearity can be assumed to not be taking place between these variables. 
+```{r}
+correlation_one <- cor(log(df$population_density), df$poverty_pct)
+vif_one <- 1/(1-(correlation_one^2))
+correlation_two <- cor(log(df$population_density), df$mask_public_bool)
+vif_two <- 1/(1-(correlation_two^2))
+correlation_three <- cor(df$poverty_pct, df$mask_public_bool)
+vif_three <- 1/(1-(correlation_three^2))
+```
+A more methodical approach for evaluating if there is too high of colinearity between features is through the calculation of the Variance Inflation Factor (VIF). For the three variables in Model 3-A, the VIF values between the three combinations of the three variables are `r vif_one`, `r vif_two`, and `r vif_three`. Generally, as long as the VIF is below four there can be assumed not enough colinearity to violate the assumption as is the case in this model.
+
+Finally, the linear model is also assumed to generate residual error that is normally distributed away from the predicted values. A simple and straightforward way to assess this is through a histogram of the residuals of the model.
+```{r}
+hist(model3a$residuals, main = "Model Residuals", xlab = "Residual")
+```
+As seen above, this assumption is generally well met. 
 
 ## 4. Regression Table
 
