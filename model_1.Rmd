@@ -21,9 +21,11 @@ library(tinytex)
 
 ```{r variables, warning=FALSE, results='hide'}
 df <- read.csv("covid-19.csv", header = TRUE)
+head(df)
 df<-df%>%
   rename(case_rate_100k = 'Case.Rate.per.100000',
          death_rate_100k = 'Death.Rate.per.100000',
+         population_18 = 'Population.2018',
          population_density = 'Population.density.per.square.miles',
          white_pct = 'White...of.Cases',
          black_pct = 'Black...of.Cases',
@@ -33,11 +35,15 @@ df<-df%>%
          business_closed = 'Closed.other.non.essential.businesses',
          business_reopen = 'Began.to.reopen.businesses.statewide',
          mask_public='Mandate.face.mask.use.by.all.individuals.in.public.spaces',
-         mask_legal='No.legal.enforcement.of.face.mask.mandate') %>%
-  select(State, case_rate_100k, death_rate_100k,population_density, white_pct, black_pct, hispanic_pct, 
+         mask_legal='No.legal.enforcement.of.face.mask.mandate',
+         nonelderly_preexisting_condition = 'Nonelderly.Adults.Who.Have.A.Pre.Existing.Condition'
+         ) %>%
+  select(State, case_rate_100k, death_rate_100k, population_18, population_density, white_pct, black_pct, hispanic_pct, 
          other_pct, state_emergency, business_closed, business_reopen, mask_public, mask_legal, 
          Black...of.Total.Population, White...of.Total.Population,
-         Percent.living.under.the.federal.poverty.line..2018., Percent.Unemployed..2018., X65.)
+         Percent.living.under.the.federal.poverty.line..2018., Percent.Unemployed..2018., X65., 
+         nonelderly_preexisting_condition, Children.0.18
+         )
 # Assign correct data types
 cols.num <- c("white_pct","black_pct","hispanic_pct","other_pct")
 df[cols.num] <- sapply(df[cols.num],as.numeric)
@@ -45,6 +51,68 @@ df$state_emergency=as.Date(df$state_emergency, format = "%m/%d/%Y")
 df$business_closed=as.Date(df$business_closed, format = "%m/%d/%Y")
 df$business_reopen=as.Date(df$business_reopen, format = "%m/%d/%Y")
 head(df)
+```
+
+```{r}
+df <- df %>% 
+  mutate(nonelderly_preexisting_condition_100k = nonelderly_preexisting_condition/(population_18*(1-X65.-Children.0.18)) * 100000,
+         X65_100k = X65.*100000)
+head(df)
+```
+
+```{r}
+summary(df$nonelderly_preexisting_condition_100k)
+```
+
+```{r}
+ggplot(data = df,
+  mapping = aes(x= nonelderly_preexisting_condition_100k ))+
+  geom_histogram(fill = 'skyblue', color = 'grey30') +
+  labs(title =  "Histogram of Nonelderly Adults with Pre-Existing Conditions per 100,000", x = "Adults per 100,000", y = 'Count')
+```
+
+```{r}
+ggplot(data = df,
+  mapping = aes(x= X65_100k ))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins = 30) +
+  labs(title =  "Histogram of Adults Over 65 per 100,000", x = "Adults over 65 per 100,000", y = 'Count')
+```
+
+```{r}
+df %>% 
+  ggplot(aes(nonelderly_preexisting_condition_100k, case_rate_100k)) + 
+  geom_smooth(se = FALSE) +
+  geom_point() +   
+  labs(
+    title = 'COVID Case Rate due to Nonelderly Adults with Pre-existing Conditions', 
+    x = 'Nonelderly adults with pre-existing conditions per 100,000', 
+    y = 'COVID case rate per 100,000'
+  )
+```
+
+
+```{r}
+df %>% 
+  ggplot(aes(X65_100k, case_rate_100k)) + 
+  geom_smooth(se = FALSE) +
+  geom_point() +   
+  labs(
+    title = 'COVID Case Rate due to Adults Over 65', 
+    x = 'Adults over 65 per 100,000', 
+    y = 'COVID case rate per 100,000'
+  )
+```
+
+
+```{r}
+model_test <- lm(case_rate_100k ~ nonelderly_preexisting_condition_100k + X65_100k, data = df)
+car::vif(model_test)
+coeftest(model_test, vcov = vcovHC)
+```
+
+```{r}
+model_test_65 <- lm(case_rate_100k ~ X65_100k, data = df)
+coeftest(model_test_65, vcov = vcovHC)
 ```
 
 ### Model 1
