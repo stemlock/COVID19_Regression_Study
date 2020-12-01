@@ -645,7 +645,29 @@ Thirdly, we notice that the R2 value increases by a large value for every additi
 
 As a note, it should be stressed that the models and variables included in this regression table may change when the final report is created to provide a more descriptive analysis of the original research question.
 
-## 5. Conclusion
+## 5. Omitted Variables
+
+Omitted variables from the model may affect both the internal specifications of included variables as well as the general applicability of the model to explain the output variable. For this analysis, some of these variables are within the dataset but not used while others are hypothetical.
+
+# 5-1: Urban vs Rural Population Ratio
+
+One of the variables that was hypothesized as being potentially influential is a ratio of a state's urban to rural population. Currently, the dataset in use contains population information as averaged across each state as a whole. While population density is potentially useful, it was found to not be significant in the models. This may be due to states which large urban centers, where population density woukd be high, losing their impact due to also containing large areas of land that is sparsely populated. One example of this would be New York, which contains several of the most densely populated counties in the country, but also large rural areas. This variable would also be explanatory of the population density variable as a whole, where a higher urban to rural ratio would result in a higher statewide population density generally. With a greater fraction of urban residents, people would also be less likely to be able to social distance as effectively, increasing the per capita case rate. Therefore, the coefficient for population density in the original model would be larger than a model where this ratio is included, resulting in a bias that is positive and away from zero. 
+
+# 5-2: Median Income
+
+Knowledge of the median income for a state would give an indication of the relative job status for a working person in that state. This would be important for the case rate to understand about how many people work in low paying jobs that are more frequently in close contact with others (such as the service industry, gig industry, etc.). Higher median income may imply that more workers are able to function remotely with greater social distancing. A higher median income would then be negatively related to the covid case rate. It would also be explanatory in a way that makes the poverty percentage variable less impactful, where either of these variables may be considered as proxies for one another. Because inclusion of the median income variable would led to a lower magnitude poverty percentage variable, this would cause a positive omitted variable bias away from zero. 
+
+# 5-3: Gender Ratio
+
+The ratio of gender between women and men may impact the covid case rate in that men are more suscepitble to viral infections and generally have lower life expectancies from lifestyle differences. Greater susceptibility may relate to the case rate in that men may more often become infected when exposed to COVID under similar circumstances as a women. Their shorter life expentancy may also impact the case rate in that more COVID cases may result in greater or more serious symptoms, with less occurances of an infection that is asymptomatic or goes undetected. In either of these cases, a higher fraction of men among the population would lead to an overall higher covid case rate. 
+
+This variable could also be partially explained by the senior percentage variable, because of the gap in gender ratios across generations and generally as people get older. Because men have lower life expectancies, older groups of people living in the US would have higher ratios of women to men. Therefore, introducing the gender ratio variable into the model would lower the value of the coefficient to the senior percentage variable. This would be a positive omitted variable bias away from zero. 
+
+However, the magnitude of this change is likely to not be large due to other causal mechanisms between seniors and covid case rate. While men may more frequently present COVID symptoms, older people in general are also more susceptible to the virus due to their physical condition and would also present more symptoms than non seniors. When comparing the two, generally seniors are considered as more at-risk of COVID complications than men across all ages, and so the senior percentage would still have a greater impact on the overall covid case rate than the gender ratio. 
+
+# 5-4:
+
+## 6. Conclusion
 
 In conclusion, although there is no evidence to show that although there is a direct correlation between the COVID case rate and population density as originally hypothesized in our research question, it can be seen from further development of the models that there is some correlation in other variables examined, namely the mask mandate variable. As can be seen from model 3, the regression model gives a mask mandate variable coefficient with p-value of 0.003058, which is highly significant. The negative coefficient also suggests that the original conjecture that the implementation of mask policies within a state would decrease the COVID case rate was indeed accurate. 
 
