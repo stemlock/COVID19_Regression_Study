@@ -665,7 +665,17 @@ This variable could also be partially explained by the senior percentage variabl
 
 However, the magnitude of this change is likely to not be large due to other causal mechanisms between seniors and covid case rate. While men may more frequently present COVID symptoms, older people in general are also more susceptible to the virus due to their physical condition and would also present more symptoms than non seniors. When comparing the two, generally seniors are considered as more at-risk of COVID complications than men across all ages, and so the senior percentage would still have a greater impact on the overall covid case rate than the gender ratio. 
 
-# 5-4:
+# 5-4: Mask Use Among Population
+
+Currently, the model incorporates state policy around masks with a variable indicating whether or not a state mandated a mask policy for the general public. While this is useful for describing an action a state government can make and its affect on the case rate, it doesn't full capture whether how much the population actively wears a mask to drive down transmission. Instead, a variable which would indicate the fraction of the population actively wearing a mask would better capture the mechanism of how the virus is transmitted among people. 
+
+A variable capturing the mask use among the population would likely reduce the explanatory power of the state mask mandate variable. This would cause the bias of the omitted variable to be positive and away from zero. 
+
+# 5-5: GDP Percentage of Tourism
+
+The economic standing of a state not only affects the individual households of its population, but also includes how it interacts with other states and how its peoples' lives might have been economically changed by the pandemic. One way that a state may increase its number of covid cases is both from tourists or others visiting during the pandemic, but also if its own population must work in close contact with others. In addition, if certain key industries to a state, such as tourism, layed off many workers, they would likely have to take lower paying close contact jobs such as in the service or gig economy in order to continue having a livelihood. 
+
+This effect can be included with a variable that demonstrates how much of a state's GDP is from tourism. It would be related to other economic indicator variables, such as the percent of the population living in poverty. While poverty is a broader phenomena, the number of people in poverty in the pandemic when the data was taken would be potentially higher due to negative effects in the tourism industry. Therefore, it is expected that states with a greater focus on tourism may also have more people in poverty in the pandemic. This would take some of the explanatory power of the poverty variable away, resulting in a positive omitted variable bias away from zero. 
 
 ## 6. Conclusion
 
