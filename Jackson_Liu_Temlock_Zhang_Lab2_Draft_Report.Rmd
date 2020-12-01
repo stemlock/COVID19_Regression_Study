@@ -497,6 +497,9 @@ plot(model3a, which=2)
 #Homoskedasticity
 plot(model3a, which=3)
 
+#Cook distance
+plot(model3a, which=5)
+
 #Collinearity
 vif(model3a)>4
 ```
