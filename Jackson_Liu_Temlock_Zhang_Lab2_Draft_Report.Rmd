@@ -434,7 +434,7 @@ There are other variables related to mask such as "No legal enforcement of face 
     
 It is worth to note that, the mask_public is in date format, which has value of zero or a actual date when the policy is enforced. According to the documentation, zero represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For a leaner regression, the date values in mask_public column are transformed as value 1, so that we can distinguish whether states has public mask policy or not. It is also noted that by transforming the variable, some important information will be lost because the actual date (early or late) to enforce the policy can also have an impact to the case rate. However, it is hard to measure the time effect as different states that enforced the public mask policy may have different threshold.
 
-Firstly, "mask_public_bool" column is created from "mask_public", with 1 represents that the state has a pulbic mask policy, and 0 means there's no explicit public mask policy from the state.
+Firstly, "mask_public_bool" column is created from "mask_public", with 1 represents that the state has a pubic mask policy, and 0 means there's no explicit public mask policy from the state.
 
 ```{r}
 
@@ -475,10 +475,32 @@ df %>%
 Next, the linear model is created from model 2 with the mask policy variables added for the regression. The regression coefficient shows that Mask_public_bool variable is highly significant. The result suggests that public mask mandate policy has postive effect in bringing the case number down.
 
 ```{r}
-model3a <- lm(case_rate_100k ~ log10(population_density)
-              + poverty_pct + mask_public_bool, data = df)
+model3a <- lm(case_rate_100k ~ senior_per_100k + log(population_density) 
+              + noneld_pre_existing_per_100k + poverty_per_100k + white_per_100k 
+              + unemployed_per_100k + mask_public_bool, data = df)
+coeftest(model3a, vcov = vcovHC)
+
+model3a <- lm(case_rate_100k ~ senior_per_100k + log(population_density) 
+              + poverty_per_100k 
+              + unemployed_per_100k + mask_public_bool, data = df)
 coeftest(model3a, vcov = vcovHC)
 ```
+
+CLM assumptions check for Model 3:
+```{r}
+#Zero Conditional Mean
+plot(model3a, which=1)
+
+#Normality of errors
+plot(model3a, which=2)
+
+#Homoskedasticity
+plot(model3a, which=3)
+
+#Collinearity
+vif(model3a)>4
+```
+
 
 #### Model 3-b & 3-c
 
