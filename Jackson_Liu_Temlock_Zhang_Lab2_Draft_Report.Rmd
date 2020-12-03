@@ -67,15 +67,15 @@ head(df)
 
 For this report, the investigation will be centered around the effect of population demographics and policy on the COVID-19 case rates across the United States (US), which is grouped by the 50 states plus the District of Columbia (D.C.). Within the report, this collection will be referred to as the "states", and each member a "state", inclusive of D.C.. 
 
-The research question aims to measure the COVID-19 case rate per 100,000 residents within each state based on the make-up of the population, as well as the policy decisions that were or were not put into place in order to combat the rise of COVID-19 cases. In this sense, the aim is to examine how dependent the COVID-19 case rate is on that of which cannot be controlled (i.e., population demographics), as well as that of which can be controlled to a certain degree (i.e., implementation of policies to attempt to combat case rate). With this information, one could suggest whether or not the proliferation of COVID-19 seems to be related to either or both controllable and uncontrollable variables, and to the level at which the effect of these variables differ help. This modeling goal of this research question will be one of description, and will be broken up into three phases of investigation
+The research question aims to measure the COVID-19 case rate per 100,000 residents within each state based on the make-up of the population, as well as the policy decisions that were or were not put into place in order to combat the rise of COVID-19 cases. In this sense, the aim is to examine how dependent the COVID-19 case rate is on that of which cannot be controlled (i.e., population demographics), as well as that of which can be controlled to a certain degree (i.e., implementation of policies to attempt to combat case rate). With this information, one could suggest whether or not the proliferation of COVID-19 seems to be related to either or both controllable and uncontrollable variables, and to the level at which the effect of these variables differ help. The modeling goal of this research question will be one of description, and will be broken up into three phases of investigation
 
-The first and primary phase of investigation involves how the COVID-19 case rate is affected by key population demographics. For this, the key variables are COVID-19 case rate per 100,000 residents and the percentage population distribution of seniors (defined as 65 years old or older) within a state. The case rate per 100,000 was selected as the key output/dependent variable as it provides a standardized measure of the spread of COVID-19 across the states, taking into account the absolute population of the states. The senior percentage was selected as the key input/independent variable given that it is posited in external research that seniors make up a significant number of the reported cases. This is likely due to the both the fact that seniors in this age group were more likely to be or had greater access to be tested given that they are categorized in the high risk category for COVID-19, and the fact that they would have a greater likelihood of exhibiting detectable COVID-19 related symptoms that would prompt them to get tested. An additional rationale for measuring the senior percentage is that they may also be more likely to contract COVID-19 at lower viral loads, making it easier for them more susceptible to the virus. These key variables will provide an initial understanding of the relationship between the spread of the virus and a key metric of susceptibility and detectability of COVID-19. 
+The first and primary phase of investigation involves how the COVID-19 case rate is affected by key population demographics. For this, the key variables are COVID-19 case rate per 100,000 residents and the percentage population distribution of seniors (defined as 65 years old or older) within a state. The case rate per 100,000 was selected as the key output/dependent variable as it provides a standardized measure of the spread of COVID-19 across the states, taking into account the absolute population of the states. The senior percentage was selected as the key input/independent variable given that it is posited in external research that seniors belong to the category for those at higher risk of COVID-19, and thus are a well studied and documented group. This is likely due to the both the fact that seniors in this age group are more likely to be or had greater access to be tested given their categorization and the fact that they would have a greater likelihood of exhibiting detectable COVID-19 related symptoms that would prompt them to get tested. An additional rationale for measuring the senior percentage is that they may also be more likely to contract COVID-19 at lower viral loads, making them more susceptible to the virus. Conversely, this may result in seniors being more wary of the threat of COVID-19, and taking additional precautions to prevent infection relative to other age categories, such as limiting social interactions and taking more preventative measures in terms of hygiene. These key variables will provide an initial understanding of the relationship between the spread of the virus and population demographics. 
 
-Following this, in the second phase of investigation the analysis considers other variables of state-level population that are considered factors of susceptibility, namely the rate of poverty (defined as the percent of individuals living under the federal poverty line in 2018) and the rate of unemployment (defined as the percent unemployment in 2018.). As mentioned, these variables operationalize population metrics that may lead to greater case rates, and are already standardized as rates to account for varying absolute populations across states.
+Following this, in the second phase of investigation the analysis considers other variables of state-level population that are considered factors of contractability, namely the rate of poverty (defined as the percent of individuals living under the federal poverty line in 2018) and the rate of unemployment (defined as the percent unemployment in 2018). Those living below the poverty line may have less access/are unable to afford to preventative controls such as sanitation products and masks that help prevent the spread of the virus, while those who are designated as unemployed may not have the flexibility of sheltering at home as well as access to the aforementioned preventative controls. As mentioned, these variables operationalize population metrics that may lead to greater case rates, and are already standardized as rates to account for varying absolute populations across states.
 
-The tertiary and final phase of investigation will include a variable that measures the implementation of policy as a response to COVID-19, and to understand the added effect of this variable in conjunction with the first phase of investigation that is state population metrics. Specifically, there is a focus on a policy that mandates the wearing of masks within the state. Through this, the aim is to analyze whether the implementation of a mask-related policy will have an effect on case rate, as well as the degree of this effect relative to population metrics. To operationalize this policy and simplify the measurements, the models will only consider whether or not this policy was implemented through transformed indicator variables (1 = implemented, 0 = not implemented). As a result, factors of when and for how long the policy was implemented will be lost. Although this loss of information may fail to capture the impact of length of time of a policy on case rate (the policy may take time to be adopted/show meaningful efficacy), as there is no time-series data for case rate included in the data set, it was adjudged to be incongruent with the analysis.
+The tertiary and final phase of investigation includes a variable that measures the implementation of policy as a response to COVID-19, and to understand the added effect of this variable in conjunction with the first phase of investigation that is state population metrics. Specifically, there is a focus on a policy that mandates the wearing of masks within the state. Through this, the aim is to analyze whether the implementation of a mask-related policy will have an effect on case rate, as well as the degree of this effect relative to population metrics. To operationalize this policy and simplify the measurements, the models only consider whether or not this policy was implemented through transformed indicator variables (1 = implemented, 0 = not implemented). As a result, factors of when and for how long the policy was implemented will be lost. Although this loss of information may fail to capture the impact of length of time of a policy on case rate (the policy may take time to be adopted/show meaningful efficacy), as there is no time-series data for case rate included in the data set, it was adjudged to be incongruent with the analysis.
 
-Additionally, the final phase of investigation will also continue to expand on the examination of state-level population demographics via the population density variable (defined as the population density in square miles, population/square miles). A key factor to the spread of COVID-19 is the idea of social distancing, where the virus is  considered to be more likely to spread when people are close in proximity. Thus, population density is measured as a conduit to indicate the level of proximity within each state and will operationalize the concept of social distancing.
+Additionally, the final phase of investigation continues to expand on the examination of state-level population demographics via the population density variable (defined as the population density in square miles, population/square miles). A key factor to the spread of COVID-19 is the idea of social distancing, where the virus is considered to be more likely to spread when people are close in proximity. Thus, population density is measured as a conduit to indicate the level of proximity within each state and will operationalize the concept of social distancing.
 
 ### Assumptions
 
@@ -101,8 +101,7 @@ The three models aim to investigate the relationship between the COVID-19 case r
 
 
 ```{r}  
-
-# percentage varialbe re-scale to number_per_100k (need to double check where to put this part in EDA or model regression)
+# percentage variable re-scale to number_per_100k (need to double check where to put this part in EDA or model regression)
 
 df<-df %>%
   mutate(
@@ -111,92 +110,138 @@ df<-df %>%
     senior_per_100k = 100000*senior_pct,
     poverty_per_100k = 100000*poverty_pct, 
     unemployed_per_100k = 100000*unemployed_pct,
-    log_population_density = log(population_density),
-    avg_distance = sqrt(2589988.11/population_density),
-    area_per_capita = 2589911.11/population_density
+    log_population_density = log(population_density)
   )
 ```
 
 ### Model 1
 
-For the first model, the relationship between the COVID case rate per 100,000 and the population density per square mile of states was analyzed. First, the distribution of COVID case rate per 100,000 dependent variable is examined.
+For the first model, the relationship between the COVID-19 case rate per 100,000 and the population percentage distribution of seniors was analyzed. First, the distribution of the case rate dependent variable is examined.
 
 ```{r}
 summary(df$case_rate_100k)
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 ggplot(data = df,
   mapping = aes(x= case_rate_100k)) +
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,6000,600)) +
-  labs(title =  "Histogram of COVID Case Rate per 100,000", 
-       x = "COVID case rate per 100,000", y = 'Count') +
+  labs(title =  "Histogram of COVID-19 Case Rate per 100,000", 
+       x = "COVID-19 case rate per 100,000", y = 'Count') +
   scale_x_continuous(breaks=seq(0, 6000, 600))
 ```
 
 As can be seen above, the distribution is fairly normal, and given that it has already been standardized as a rate across all states, there is no need to perform any transformations on this variable. Thus, the case rate per 100,000 variable can be leveraged as is as the dependent variable for all three models.
 
-Next, the distribution of population density per square mile variable is examined.
+Next, the distribution of the senior percentage variable is examined.
 
-```{r}
-histogram_of_pdensity <- df %>%
-  ggplot(aes(x = population_density)) + 
-  geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
-  labs(
-    title = 'Distribution of Population Density per Square Miles', 
-    x = 'Population density per square mile', y = 'Count')
+```{r, warning=FALSE, message=FALSE}
+summary(df$senior_pct*100)
 
-histogram_of_pdensity
+ggplot(data = df,
+  mapping = aes(x= senior_pct*100)) +
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(10,21,1)) +
+  labs(title = 'Histogram of Percentage Population of Seniors', 
+  x = 'Percentage population of seniors (%)', y = 'Count') +
+  scale_x_continuous(breaks=seq(10,22,1))
 ```
 
-As can be seen from the histogram, although most of the population density is concentrated in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is the District of Columbia (D.C.) with a value of 11,496. This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Alternatively, the data point could have been droppped from the sample, but given the already small sample size, it was determined that a better approach would be to keep it within the sample. Once this transformation was performed, it is shown that there is a relatively normal distribution of population densities (see figure below).
+As can be seen from the distribution above, again there is a fairly normal distribution in the percentage population of seniors across the state. Additionally, there do not seem to be any outliers within the distribution, given that the range of percentages fall between 11-21%. Therefore, there are no transformations that need to be made in order to restructure the distribution. However, it was determined that the percentages would be transformed into a rate per 100,000 value in order to allow for easier interpretation when analyzing the effect on the output variable which itself is based on scale of rate per 100,000. Given that this transformation is constant across all values, it has no effect on the normality of the distribution itself, as seen in the histogram below.
 
 ```{r}
-# Find the outlier data points
-outliers <- subset(df, population_density > 4000)
-paste(outliers$State, '=', outliers$population_density)
+df<-df %>%
+  mutate(
+    senior_per_100k = 100000*senior_pct)
 
-# Transform the variable by taking the logarithm and assign it to a new variable
-df <- df %>% 
-  mutate(l_population_density = log10(population_density))
-
-# Plot the new distribution in a histogram
-histogram_of_pdensity <- df %>%
-  ggplot(aes(x = l_population_density)) + 
-  geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
-  labs(
-    title = 'Distribution of Population Density per Square Miles', 
-    x = 'Log of population density per square mile', y = 'Count')
-
-histogram_of_pdensity
+ggplot(data = df,
+  mapping = aes(x= senior_per_100k)) +
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(10000,21000,1000)) +
+  labs(title = 'Histogram of Seniors per 100,000', 
+  x = 'Population of seniors per 100,000', y = 'Count') + 
+  scale_x_continuous(breaks=seq(10000,22000,1000))
 ```
 
 With the appropriate variables transformed, a plot is created to show the relationship between them. 
 
 ```{r message=FALSE}
 df %>% 
-  ggplot(aes(l_population_density, case_rate_100k)) + 
+  ggplot(aes(senior_per_100k, case_rate_100k)) + 
   geom_smooth(se = FALSE) +
   geom_point() +   
   labs(
-    title = 'COVID Case Rate due to Population Density', 
-    x = 'Log of population density per square miles', 
+    title = 'COVID-19 Case Rate due to Senior Population', 
+    x = 'Population of senior per 100,000', 
     y = 'COVID case rate per 100,000'
   )
 ```
 
-From the above plot, it can be posited that there is no discernible relationship between the variables given the non-linear relationship. In order to test this, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables.
+From the above plot, there is noticeable variation in the smoothed blue line. However, it can be posited that there is a inverse relationship between the variables given the roughly linear relationship in the overall downward trend in the line. In order to test this, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables.
 
 $$
-Case.Rate.Per.100000 =\beta_0 +\beta_1 log(Population.Density.Per.Square.Miles)
+case{\_}rate{\_}100k =\beta_0 + \beta_1 senior{\_}per{\_}100k
 $$
 
 ```{r}
-model1 <- lm(case_rate_100k ~ log10(population_density) , data = df)
+model1 <- lm(case_rate_100k ~ senior_per_100k , data = df)
 coeftest(model1, vcov = vcovHC)
 ```
 
-From the results of the regression, two things are identified. Firstly, the result of the coefficient is nowhere near significant, and therefore we fail to reject the null hypothesis that there is no correlation between case rate and population density, and there is no detectable effect of the independent variable population density. However, the coefficient of population density appears to be negative, which would concur with the assumption that the higher the population density, the lower the COVID case rate in a state.
+From the results of the regression using robust standard errors, the p-value of the senior rate variable is 0.056, which is close but not quite within the significant level of >0.05 to reject the null hypothesis that there is no correlation between case rate and senior rate. To improve the precision of the t-test, classical standard errors can be used. To determine the applicability of using classical standard errors, in addition to the three Classical Linear Model (CLM) assumptions necessary for the robust standard errors, the CLM assumption for homoskedastic conditional errors should be evaluated. If this additional assumption is met, the robust standard errors can be replaced by the classical standard errors. The assumption of homoskedasticity is met if the data does not have large variance among the residuals. 
+
+To evaluate this assumption, the square root of the residuals (to remove any negative values) is plotted against the fitted values of the model. Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity.
+
+```{r}
+# Check the homoskedasticity of errors in model 1
+plot(model1, which=3)
+
+# Run the Breusch-Pagan test for model 1
+bptest(model1)
+```
+
+From the above plot, the variance in residuals can be seen to be roughly constant given the relative flatness of the plotted red line, thus meeting the assumption of homoskedastic conditional errors. This is supported by the p-value of 0.497 from the Breusch-Pagan test, meaning there is a failure to reject that null hypothesis that the conditional errors are not heteroskedastic. With this additional assumption met, the regression model is rerun using a t-test with classical standard errors. 
+
+```{r}
+coeftest(model1)
+```
+
+As can be seen from the above output, with the improved precision of the classical standard errors the variable for senior percentage is shown to be significant within the model specification with a p-value of 0.023. Furthermore, The coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior percentage and the case rate. In practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
+
+Next, the other CLM assumptions are revisited to determine the whether the coefficients are unbiased and consistent. However, the assumption for IID is not detailed here given that it is evaluated more generally for all three models within section 3. 
+
+The second CLM assumption to be evaluated here is that of a linear conditional expectation relationship within the data, so that the model is accurately estimating the relationship between the variables. To test for this, the residuals of model 1 are plotted against its fitted values.
+
+```{r}
+# Check for linearty in model 1
+plot(model1, which=1)
+```
+
+When examining the plot above for linearity in the conditional expectation, there is a noticeable slightly quadratic shape to the relationship of the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics. Additionally, there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity. 
+
+The third CLM assumption examined for model 1 is the assumption of normality of errors. This is a necessary assumption to ascertain that the errors used in the regression are drawn from a normal distribution, so that they can be accepted when used to calculate the significance levels. Both a QQ plot and histogram of the distribution of the residuals is plotted to observe the normality.
+
+```{r, message = FALSE}
+# Create a QQ plot for the model 1 residuals
+plot(model1, which=2)
+
+# Create a histogram of the distribution of the model 1 residuals
+df %>%
+  ggplot(aes(x = resid(model1))) +
+  stat_bin() +
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins=30) +
+  labs(title =  "Histogram of the Model 1 Residuals", 
+       x = "Model 1 residuals", y = 'Count')
+```
+
+From the QQ plot, normality in the residuals can be detected given the proximity of the points to the normal line. Additionally, although the shape is a little harder to observe, the histogram of the residuals also gives a fairly normal distribution.
+
+Finally the Cook's distance is examined by a plot of the residuals vs the model 1 leverage to look for any outliers in the values. From the plot below, no obvious outliers are detected.
+
+```{r, message = FALSE}
+# Investigate outliers using Cook's distance
+plot(model1, which=5)
+```
+
+It is also noted that there is no test conducted for collinearity given there is only one input variable in model 1.
 
 ### Model 2
 
@@ -429,6 +474,58 @@ df %>%
   )
 ```
 
+### Sam - @Frank, this was my previous analysis of the POPULATION DENSITY variable, feel free to use this
+
+Next, the distribution of the population density variable is examined.
+
+```{r}
+# Plot the distribution in a histogram
+histogram_of_pdensity <- df %>%
+  ggplot(aes(x = population_density)) + 
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
+  labs(
+    title = 'Distribution of Population Density per Square Miles', 
+    x = 'Population density per square mile', y = 'Count')
+
+histogram_of_pdensity
+```
+
+As can be seen from the histogram, although most of the population density is concentrated in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is D.C. with a value of 11,496. This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Alternatively, the data point could have been droppped from the sample, but given the already small sample size, it was determined that a better approach would be to keep it within the sample. Once this transformation was performed, it is shown that there is a relatively normal distribution of population densities (see figure below).
+
+```{r}
+# Find the outlier data points
+outliers <- subset(df, population_density > 4000)
+paste(outliers$State, '=', outliers$population_density)
+
+# Transform the variable by taking the logarithm and assign it to a new variable
+df <- df %>% 
+  mutate(l_population_density = log10(population_density))
+
+# Plot the new distribution in a histogram
+histogram_of_pdensity <- df %>%
+  ggplot(aes(x = l_population_density)) + 
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
+  labs(
+    title = 'Distribution of Population Density per Square Miles', 
+    x = 'Log of population density per square mile', y = 'Count')
+
+histogram_of_pdensity
+```
+
+With the appropriate variables transformed, a plot is created to show the relationship between them. 
+
+```{r message=FALSE}
+df %>% 
+  ggplot(aes(l_population_density, case_rate_100k)) + 
+  geom_smooth(se = FALSE) +
+  geom_point() +   
+  labs(
+    title = 'COVID Case Rate due to Population Density', 
+    x = 'Log of population density per square miles', 
+    y = 'COVID case rate per 100,000'
+  )
+```
+
 #### Model 3 Regression
 
 Next, the linear model is created from model 2 with the mask policy variables added for the regression. The regression coefficient shows that Mask_public_bool variable is highly significant. The result suggests that public mask mandate policy has postive effect in bringing the case number down.
@@ -630,11 +727,11 @@ Although there were several versions of models created for model 2 and 3, throug
 For the regression table below, model 1, model 2-b, and model 3-a were selected as the most significant models to include.
 
 ```{r warning=FALSE}
-se.model1 = coeftest(model1, vcov = vcovHC)[ , "Std. Error"]
-se.model2 = coeftest(model2, vcov = vcovHC)[ , "Std. Error"]
-se.model3 = coeftest(model3, vcov = vcovHC)[ , "Std. Error"]
+se.model1 = coeftest(model1)[ , "Std. Error"]
+se.model2 = coeftest(model2)[ , "Std. Error"]
+se.model3 = coeftest(model3)[ , "Std. Error"]
 
-stargazer(model1, model2, model3, type = "text", omit.stat = "f",
+stargazer(model1, model2, model3, type = "text",
           se = list(se.model3),
           star.cutoffs = c(0.05, 0.01, 0.001), 
           title = "Table 1: The relationship between COVID case rate and population density")
