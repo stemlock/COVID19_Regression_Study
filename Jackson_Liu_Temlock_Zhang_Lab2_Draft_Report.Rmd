@@ -99,6 +99,24 @@ As mentioned in the introduction, the modeling goal for the COVID-19 case rate w
 
 The three models aim to investigate the relationship between the COVID-19 case rate, state population demographics, and a mask mandates. COVID-19 case rate per 100,000 is chosen as the key dependent variable to represent the proliferation of the COVID-19 pandemic in each state. The population percentage of seniors is chosen as the key independent variable as a proxy for susceptibility by innate state population make-up. The variables of poverty percentage, unemployment percentage, mask mandate policy, and population density per square miles are chosen as candidate covariates to further explore the aforementioned potential relationship.
 
+
+```{r}  
+
+# percentage varialbe re-scale to number_per_100k (need to double check where to put this part in EDA or model regression)
+
+df<-df %>%
+  mutate(
+    noneld_pre_existing_per_100k = 100000*non_elderly_pre_existing/population_2018,
+    white_per_100k = 100000*white_population_pct,
+    senior_per_100k = 100000*senior_pct,
+    poverty_per_100k = 100000*poverty_pct, 
+    unemployed_per_100k = 100000*unemployed_pct,
+    log_population_density = log(population_density),
+    avg_distance = sqrt(2589988.11/population_density),
+    area_per_capita = 2589911.11/population_density
+  )
+```
+
 ### Model 1
 
 For the first model, the relationship between the COVID case rate per 100,000 and the population density per square mile of states was analyzed. First, the distribution of COVID case rate per 100,000 dependent variable is examined.
@@ -344,51 +362,20 @@ df %>%
 
 
 ### Model 2 Regression
-The regression models regarding the demographic variables discussed previously are listed as below.However, no coefficients regarding these variables in model 2 are statistically significant.
-
-```{r}
-df<-df %>%
-  mutate(
-    noneld_pre_existing_per_100k = 100000*non_elderly_pre_existing/population_2018,
-    white_per_100k = 100000*white_population_pct,
-    senior_per_100k = 100000*senior_pct,
-    poverty_per_100k = 100000*poverty_pct, 
-    unemployed_per_100k = 100000*unemployed_pct,
-    log_population_density = log(population_density),
-    avg_distance = sqrt(2589988.11/population_density),
-    area_per_capita = 2589911.11/population_density
-  )
-```
-
-#### Model 2-a
+The regression models regarding the demographic variables discussed previously are listed as below.
 
 $$
 \begin{aligned}
- Case.Rate.Per.100K =\beta_0 &+\beta_1Senior.Rate.Per.100K \\&+\beta_2Nonelderly.Pre.Existing.Rate.Per.100K\\&+\beta_3Poverty.Rate.Per.100K+\beta_4ln(Population.Density)\\&+\beta_5White.Rate.Per.100K
+ Case.Rate.Per.100K =\beta_0 &+\beta_1Senior.Rate.Per.100K +\beta_2Poverty.Rate.Per.100K +\beta_3Unemployed.Per.100K
 \end{aligned}
 $$
 
 ```{r}
-model2a <- lm(case_rate_100k ~ senior_per_100k + log(population_density) + noneld_pre_existing_per_100k + poverty_per_100k + white_per_100k, data = df)
-coeftest(model2a)
+model2 <- lm(case_rate_100k ~ senior_per_100k + poverty_per_100k + unemployed_per_100k, data = df)
+coeftest(model2)
 ```
 
-
-
-#### Model 2-b
-
-$$
-\begin{aligned}
- Case.Rate.Per.100K =\beta_0 &+\beta_1Senior.Rate.Per.100K \\&+\beta_2Nonelderly.Pre.Existing.Rate.Per.100K\\&+\beta_3Poverty.Rate.Per.100K+\beta_4ln(Population.Density)\\&+\beta_5White.Rate.Per.100K+\beta_6Unemployed.Per.100k
-\end{aligned}
-$$
-```{r}
-model2b <- lm(case_rate_100k ~ senior_per_100k + log(population_density) + noneld_pre_existing_per_100k + poverty_per_100k + white_per_100k + unemployed_per_100k, data = df)
-coeftest(model2b)
-```
-
-
-#### need to update
+#### (need to update)
 From the results of the regression, none of the coefficients of investigated variables in model 2 are significant (p-value < 0.05). Among these regression coefficient tests,  the p-value regarding the poverty percentage variable is the lowest (0.05755).  In addition, its positive estimated coefficient is consistent with the statement that low-income communities are at high pandemic risk claimed by mainstream media these days. 
 
 ### Model 3 
@@ -601,7 +588,6 @@ As seen above, this assumption is generally well met.
 
 ### Model 2 limits
 
-#### 2-a
 #### i. IID Sampling 
 ( Discussed in the common section)
 
@@ -611,11 +597,11 @@ Assessing non-linear in higher-dimensional space: look at the predicted vs. resi
 ```{r, echo=FALSE}
 df<- df%>% 
   mutate(
-    model2a_preds = predict(model2a), 
-    model2a_resids = resid(model2a)
+    model2_preds = predict(model2), 
+    model2_resids = resid(model2)
   ) 
 df %>% 
-  ggplot(aes(model2a_preds, model2a_resids)) + 
+  ggplot(aes(model2_preds, model2_resids)) + 
   geom_point() + 
   stat_smooth()
 ```
@@ -624,33 +610,33 @@ df %>%
 First, check if any variables were dropped by R. No coefficient is missing, which mean there is no perfect collinearity. 
 
 ```{r}
-model2a$coefficients
+model2$coefficients
 ```
 
 In addition, all the variance inflation factors are less than 4, which doesn't indicate the exisitence of collinearity. 
 
 ```{r}
-vif(model2a)
+vif(model2)
 ```
 
 ####iv.Homoskedastic Errors
-32 is New Mexico, 33 is New York, 35 is North Dakota
+10 is Florida, 33 is New York, 35 is North Dakota
 
 ```{r, echo=FALSE}
-plot(model2a, which=3)
+plot(model2, which=3)
 ```
 
 ####v.Normally Distributed Errors
 Check the normality of error distribution based on the histogram of residuals and the qqplot.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warninng=False}
 plot_one <- df %>% 
-  ggplot(aes(x = model2a_resids)) + 
+  ggplot(aes(x = model2_resids)) + 
   stat_bin(bins = 25)
   geom_histogram()
   
 plot_two <- df %>% 
-  ggplot(aes(sample = model2a_resids)) + 
+  ggplot(aes(sample = model2_resids)) + 
   stat_qq() + stat_qq_line()
 
 plot_one / plot_two
@@ -660,85 +646,16 @@ plot_one / plot_two
 
 ```{r, echo=FALSE}
 df %>% 
-  select(case_rate_100k, senior_per_100k, log_population_density, noneld_pre_existing_per_100k, poverty_per_100k, white_per_100k) %>% 
+  select(case_rate_100k, senior_per_100k, poverty_per_100k, unemployed_per_100k) %>% 
   GGally::ggpairs()
 ```
 
 #### Cook Distance 
-9-DC, 12-Hawaii, 32-New Mexico.
+10 Florida, 20 Maine, 35 North Dakota
 
 ```{r, echo =FALSE}
-plot(model2a, which = 5)
+plot(model2, which = 5)
 ```
-
-#### 2-b
-####i.IID Sampling
-
-#####ii.Linear Conditional Expectation
-Assessing non-linear in higher-dimensional space: look at the predicted vs. residuals of the model.
-
-```{r, echo=FALSE}
-df<- df%>% 
-  mutate(
-    model2b_preds = predict(model2b), 
-    model2b_resids = resid(model2b)
-  ) 
-df %>% 
-  ggplot(aes(model2b_preds, model2b_resids)) + 
-  geom_point() + 
-  stat_smooth()
-```
-
-###iii.No Perfect Collinearity
-First, check if any variables were dropped by R. No coefficient is missing, which mean there is no perfect collinearity. 
-
-```{r}
-model2b$coefficients
-```
-
-In addition, all the variance inflation factors are less than 4, which doesn't indicate the exisitence of collinearity. 
-
-```{r}
-vif(model2b)
-```
-
-###iv.Homoskedastic Errors
-32 is New Mexico, 33 is New York, 35 is North Dakota
-
-```{r, echo=FALSE}
-plot(model2b, which=3)
-```
-
-###v.Normally Distributed Errors
-Check the normality of error distribution based on the histogram of residuals and the qqplot.
-
-```{r, echo=FALSE}
-plot_one <- df %>% 
-  ggplot(aes(x = model2b_resids)) + 
-  stat_bin(bins = 25)
-  geom_histogram()
-  
-plot_two <- df %>% 
-  ggplot(aes(sample = model2b_resids)) + 
-  stat_qq() + stat_qq_line()
-
-plot_one / plot_two
-```
-
-#### GGPairs
-```{r, echo=FALSE}
-df %>% 
-  select(case_rate_100k, senior_per_100k, log_population_density, noneld_pre_existing_per_100k, poverty_per_100k, white_per_100k) %>% 
-  GGally::ggpairs()
-```
-
-### Cook Distance 
-9-DC, 12-Hawaii, 32-New Mexico.
-
-```{r, echo =FALSE}
-plot(model2b, which = 5)
-```
-
 
 ## 4. Regression Table
 
@@ -748,10 +665,10 @@ For the regression table below, model 1, model 2-b, and model 3-a were selected 
 
 ```{r warning=FALSE}
 se.model1 = coeftest(model1, vcov = vcovHC)[ , "Std. Error"]
-se.model2 = coeftest(model2b, vcov = vcovHC)[ , "Std. Error"]
+se.model2 = coeftest(model2, vcov = vcovHC)[ , "Std. Error"]
 se.model3 = coeftest(model3a, vcov = vcovHC)[ , "Std. Error"]
 
-stargazer(model1, model2b, model3a, type = "text", omit.stat = "f",
+stargazer(model1, model2, model3a, type = "text", omit.stat = "f",
           se = list(se.model3),
           star.cutoffs = c(0.05, 0.01, 0.001), 
           title = "Table 1: The relationship between COVID case rate and population density")
