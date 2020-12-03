@@ -384,9 +384,9 @@ For Model 3, policy related variables will be introduced for the analytics. Poli
 
 There are other variables related to mask such as "No legal enforcement of face mask mandate" and "Mandate face mask use by employees in public-facing businesses", we believe these variables have a lower impact than the policy that is enforced to public. Also, it is very likely that if a state enforce public mask policy, they will by default enforce mask policy for employees in public-facing business. As a result, we believe mask policy for all individuals in public space can be used to effectively represents the policy impact. 
     
-It is worth to note that, the mask_public is in date format, which has value of zero or a actual date when the policy is enforced. According to the documentation, zero represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For a leaner regression, the date values in mask_public column are transformed as value 1, so that we can distinguish whether states has public mask policy or not. It is also noted that by transforming the variable, some important information will be lost because the actual date (early or late) to enforce the policy can also have an impact to the case rate. However, it is hard to measure the time effect as different states that enforced the public mask policy may have different threshold.
+It is worth to note that, the mask_public is in date format, which has value of zero or a actual date when the policy is enforced. According to the documentation, zero represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For linear regression, the date values in mask_public column are transformed as value 1, so that we can distinguish whether states has public mask policy or not. It is also noted that by transforming the variable, some important information will be lost because the actual date (early or late) to enforce the policy can also have an impact to the case rate. However, it is difficult to measure the time effect as different states that enforced the public mask policy may depend on related situations or different thresholds.
 
-Firstly, "mask_public_bool" column is created from "mask_public", with 1 represents that the state has a pubic mask policy, and 0 means there's no explicit public mask policy from the state.
+Firstly, "mask_public_bool" column is created from "mask_public", with 1 represents that the state has a pubic mask policy, and 0 means there's no explicit public mask policy from the state. The summary shows that there are 35 states that enforced public mask mandate, and 16 states that had no public mask policy. The ratio looks reasonable for the analysis considering sample size of 51 as there is decent number of samples for each state policy type. 
 
 ```{r}
 
@@ -397,15 +397,22 @@ df <- df %>%
       !(mask_public == 0) ~ 1
       )
   )
+
+cat('Count for states that enforced mask mandate in public: ', 
+    length(df$mask_public_bool[df$mask_public_bool==1]))
+
+cat('Count for states did not enforced mask mandate in public: ', 
+    length(df$mask_public_bool[df$mask_public_bool==0]))
 ```
 
-Histograms below that shows the distribution of states that has public mask policy or not. Both distributions exhibits certain degree of normality. 
+Histograms below that shows the distribution of states that has public mask policy or not. Both distributions are not very normal with relatively small skews toward both tails. 
 
 ```{r}
+
 hist(df$case_rate_100k[df$mask_public_bool == 1], xlab='Case Rate', ylab='Count', 
-     main='Case Rate - Mask Mandate in Public')
+     col='skyblue', main='Case Rate - States Enforced Mask Mandate in Public')
 hist(df$case_rate_100k[df$mask_public_bool == 0], xlab='Case Rate', ylab='Count', 
-     main='Case Rate  - No Mask Mandate in Public')
+     col='skyblue', main='Case Rate  - States Enformced No Mask Mandate in Public')
 ```
 
 A plot that shows the relationship between different policies vs case rate.
@@ -422,79 +429,38 @@ df %>%
   )
 ```
 
-#### Model 3-a
+#### Model 3 Regression
 
 Next, the linear model is created from model 2 with the mask policy variables added for the regression. The regression coefficient shows that Mask_public_bool variable is highly significant. The result suggests that public mask mandate policy has postive effect in bringing the case number down.
 
 ```{r}
-model3a <- lm(case_rate_100k ~ senior_per_100k + log(population_density) 
-              + noneld_pre_existing_per_100k + poverty_per_100k + white_per_100k 
-              + unemployed_per_100k + mask_public_bool, data = df)
-coeftest(model3a, vcov = vcovHC)
 
-model3a <- lm(case_rate_100k ~ senior_per_100k + log(population_density) 
+model3 <- lm(case_rate_100k ~ senior_per_100k 
               + poverty_per_100k 
-              + unemployed_per_100k + mask_public_bool, data = df)
-coeftest(model3a, vcov = vcovHC)
+              + unemployed_per_100k 
+             + mask_public_bool
+             + log(population_density), data = df)
+coeftest(model3, vcov = vcovHC)
 ```
 
 CLM assumptions check for Model 3:
 ```{r}
 #Zero Conditional Mean
-plot(model3a, which=1)
+plot(model3, which=1)
 
 #Normality of errors
-plot(model3a, which=2)
+plot(model3, which=2)
 
 #Homoskedasticity
-plot(model3a, which=3)
+plot(model3, which=3)
 
 #Cook distance
-plot(model3a, which=5)
+plot(model3, which=5)
 
 #Collinearity
-vif(model3a)>4
+vif(model3)
 ```
 
-
-#### Model 3-b & 3-c
-
-Considering that there could be multiple policy variables that are relevant to predicting the case number. We have also examined the "Closed.other.non.essential.businesses" variable (renamed as "business_closed") which represents the date when the state issued closure of non-essential businesses. As "business_closed" is a date variable, a transformation was performed to convert the date into a variable "business_close_diff" which represents the days difference between the business close date of the state compared to the average date of all the states.
-
-```{r}
-df$business_close_diff =as.numeric(df$business_closed-mean(df$business_closed, na.rm=TRUE))
-```
-
-From the plot of business close date difference against case rate, the graph shows that there is some degree of linearity between the two variables.
-
-```{r warning=FALSE, message=FALSE}
-df %>% 
-  ggplot(aes(x = business_close_diff, y = case_rate_100k, color = business_close_diff)) + 
-  geom_point() + 
-  geom_smooth(se = FALSE) +
-  labs(
-    title = 'Case Rate vs Non-Essential Business Close Date difference \ncompared to Average', 
-    x = 'Non-Essential Business Close Date difference compared to Average', 
-    y = 'Case Rate', 
-    color = 'Case Rate'
-  )
-```
-
-By running the model with "business_close_diff" against case rate variable, the coefficient shows that the variable is significant.
-
-```{r}
-model3b <- lm(case_rate_100k ~ business_close_diff, data = df)
-coeftest(model3b, vcov = vcovHC)
-```
-
-However, the regression with both policy variables "mask_pubic_bool" and "business_close_diff" shows that neither the the variable is significant. 
-
-```{r}
-model3c <- lm(case_rate_100k ~ business_close_diff + mask_public_bool, data = df)
-coeftest(model3c, vcov = vcovHC)
-```
-
-The findings above suggests that there is colinearity between the two variables "mask_pubic_bool" and "business_close_diff". Therefore, we decided to use "mask_public_bool" variable which has higher significance to represent our policy variable. As a result, model 3-a is selected as the final model for model 3.
 
 ## 3. Limitations of the Models
 
@@ -506,10 +472,10 @@ Secondly, the process being modeled must be described by a linear conditional ex
 avg_pop <- log10(mean(df$population_density))
 avg_pov <- mean(df$poverty_pct)
 avg_mask <- mean(df$mask_public_bool)
-y_pop <- model3a$coefficients[1] + model3a$coefficients[2]*log10(df$population_density) + model3a$coefficients[3]*avg_pov + model3a$coefficients[4]*avg_mask
-y_pov <- model3a$coefficients[1] + model3a$coefficients[2]*avg_pop + model3a$coefficients[3]*df$poverty_pct + model3a$coefficients[4]*avg_mask
-y_pop_nomask <- model3a$coefficients[1] + model3a$coefficients[2]*avg_pop + model3a$coefficients[3]*avg_pov
-y_pov_nomask <- model3a$coefficients[1] + model3a$coefficients[2]*avg_pop + model3a$coefficients[3]*df$poverty_pct
+y_pop <- model3$coefficients[1] + model3$coefficients[2]*log10(df$population_density) + model3$coefficients[3]*avg_pov + model3$coefficients[4]*avg_mask
+y_pov <- model3$coefficients[1] + model3$coefficients[2]*avg_pop + model3$coefficients[3]*df$poverty_pct + model3$coefficients[4]*avg_mask
+y_pop_nomask <- model3$coefficients[1] + model3$coefficients[2]*avg_pop + model3$coefficients[3]*avg_pov
+y_pov_nomask <- model3$coefficients[1] + model3$coefficients[2]*avg_pop + model3$coefficients[3]*df$poverty_pct
 
 df %>% 
   ggplot() + 
@@ -544,21 +510,21 @@ df %>%
 Linearity for the three regressed variables is demonstrated above. As can be seen when mask policy and population density are varied, the data generally follows a linear trend. This is similar when the poverty percentage is varied, although at higher levels of poverty the presence of a mask mandate made the case rate unexpectedly low. It appears that possible a negative quadratice function may fit the data better, although it appears close enough to linear that this assumption may hold. 
 ```{r}
 df %>% {
-   ggplot(mapping = aes(x = log(df$population_density), y = model3a$residuals)) +
+   ggplot(mapping = aes(x = log(df$population_density), y = model3$residuals)) +
       geom_point() + stat_smooth(se = TRUE) +
       ggtitle("Model Residuals versus Population Density") +
       xlab("Logarithm of Population Density") +
       ylab("Residual")
 }
 df %>% {
-   ggplot(mapping = aes(x = df$poverty_pct, y = model3a$residuals)) +
+   ggplot(mapping = aes(x = df$poverty_pct, y = model3$residuals)) +
       geom_point() + stat_smooth(se = TRUE) +
       ggtitle("Model Residuals versus Poverty Percentage") +
       xlab("Poverty Percentage (%)") +
       ylab("Residual")
 }
 df %>% {
-   ggplot(mapping = aes(x = log(df$mask_public_bool), y = model3a$residuals)) +
+   ggplot(mapping = aes(x = log(df$mask_public_bool), y = model3$residuals)) +
       geom_point() + stat_smooth(se = TRUE) +
       ggtitle("Model Residuals versus Mask Mandate") +
       xlab("Public Mask Mandate") +
@@ -581,7 +547,7 @@ A more methodical approach for evaluating if there is too high of colinearity be
 
 Finally, the linear model is also assumed to generate residual error that is normally distributed away from the predicted values. A simple and straightforward way to assess this is through a histogram of the residuals of the model.
 ```{r}
-hist(model3a$residuals, main = "Model Residuals", xlab = "Residual")
+hist(model3$residuals, main = "Model Residuals", xlab = "Residual")
 ```
 As seen above, this assumption is generally well met. 
 
@@ -629,7 +595,7 @@ plot(model2, which=3)
 ####v.Normally Distributed Errors
 Check the normality of error distribution based on the histogram of residuals and the qqplot.
 
-```{r, echo=FALSE, warninng=False}
+```{r, echo=FALSE, warning=FALSE}
 plot_one <- df %>% 
   ggplot(aes(x = model2_resids)) + 
   stat_bin(bins = 25)
@@ -666,9 +632,9 @@ For the regression table below, model 1, model 2-b, and model 3-a were selected 
 ```{r warning=FALSE}
 se.model1 = coeftest(model1, vcov = vcovHC)[ , "Std. Error"]
 se.model2 = coeftest(model2, vcov = vcovHC)[ , "Std. Error"]
-se.model3 = coeftest(model3a, vcov = vcovHC)[ , "Std. Error"]
+se.model3 = coeftest(model3, vcov = vcovHC)[ , "Std. Error"]
 
-stargazer(model1, model2, model3a, type = "text", omit.stat = "f",
+stargazer(model1, model2, model3, type = "text", omit.stat = "f",
           se = list(se.model3),
           star.cutoffs = c(0.05, 0.01, 0.001), 
           title = "Table 1: The relationship between COVID case rate and population density")
