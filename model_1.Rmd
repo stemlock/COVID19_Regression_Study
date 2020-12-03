@@ -54,6 +54,23 @@ head(df)
 ```
 
 ```{r}
+df1 <- read.csv("../pop-urban-pct-historical.csv", header = TRUE)
+df1 <- df1 %>%
+  rename(State = 'Area.Name',
+         urban_percent_2010 = 'X2010'
+         ) %>%
+  select(State, urban_percent_2010
+         )
+head(df1)
+```
+
+```{r}
+df <- merge(df, df1, by="State")
+head(df)
+```
+
+
+```{r}
 df <- df %>% 
   mutate(nonelderly_preexisting_condition_100k = nonelderly_preexisting_condition/(population_18*(1-X65.-Children.0.18)) * 100000,
          X65_100k = X65.*100000)
@@ -73,10 +90,30 @@ ggplot(data = df,
 
 ```{r}
 ggplot(data = df,
+  mapping = aes(x= urban_percent_2010 ))+
+  geom_histogram(fill = 'skyblue', color = 'grey30') +
+  labs(title =  "Histogram of Urban Population Percentage", x = "Urban percentage", y = 'Count')
+```
+
+```{r}
+ggplot(data = df,
   mapping = aes(x= X65_100k ))+
   geom_histogram(fill = 'skyblue', color = 'grey30', bins = 30) +
   labs(title =  "Histogram of Adults Over 65 per 100,000", x = "Adults over 65 per 100,000", y = 'Count')
 ```
+
+```{r}
+df %>% 
+  ggplot(aes(urban_percent_2010, case_rate_100k)) + 
+  geom_smooth(se = FALSE) +
+  geom_point() +   
+  labs(
+    title = 'COVID Case Rate due to Urban Population', 
+    x = 'Urban population percentage', 
+    y = 'COVID case rate per 100,000'
+  )
+```
+
 
 ```{r}
 df %>% 
@@ -113,6 +150,20 @@ coeftest(model_test, vcov = vcovHC)
 ```{r}
 model_test_65 <- lm(case_rate_100k ~ X65_100k, data = df)
 coeftest(model_test_65, vcov = vcovHC)
+```
+
+```{r}
+model_test_urban <- lm(case_rate_100k ~ urban_percent_2010, data = df)
+coeftest(model_test_urban, vcov = vcovHC)
+```
+
+
+```{r}
+plot(model1, which=5)
+```
+
+```{r}
+plot(model_test_urban, which=5)
 ```
 
 ### Model 1
