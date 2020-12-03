@@ -689,6 +689,10 @@ vif(model2)
 plot(model2, which=3)
 ```
 
+```{r, echo=FALSE}
+bptest(model2)
+```
+
 ####v.Normally Distributed Errors
 Check the normality of error distribution based on the histogram of residuals and the qqplot.
 
