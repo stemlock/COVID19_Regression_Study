@@ -69,7 +69,7 @@ For this report, the investigation will be centered around the effect of populat
 
 The research question aims to measure the COVID-19 case rate per 100,000 residents within each state based on the make-up of the population, as well as the policy decisions that were or were not put into place in order to combat the rise of COVID-19 cases. In this sense, the aim is to examine how dependent the COVID-19 case rate is on that of which cannot be controlled (i.e., population demographics), as well as that of which can be controlled to a certain degree (i.e., implementation of policies to attempt to combat case rate). With this information, one could suggest whether or not the proliferation of COVID-19 seems to be related to either or both controllable and uncontrollable variables, and to the level at which the effect of these variables differ help. The modeling goal of this research question will be one of description, and will be broken up into three phases of investigation
 
-The first and primary phase of investigation involves how the COVID-19 case rate is affected by key population demographics. For this, the key variables are COVID-19 case rate per 100,000 residents and the percentage population distribution of seniors (defined as 65 years old or older) within a state. The case rate per 100,000 was selected as the key output/dependent variable as it provides a standardized measure of the spread of COVID-19 across the states, taking into account the absolute population of the states. The senior percentage was selected as the key input/independent variable given that it is posited in external research that seniors belong to the category for those at higher risk of COVID-19, and thus are a well studied and documented group. This is likely due to the both the fact that seniors in this age group are more likely to be or had greater access to be tested given their categorization and the fact that they would have a greater likelihood of exhibiting detectable COVID-19 related symptoms that would prompt them to get tested. An additional rationale for measuring the senior percentage is that they may also be more likely to contract COVID-19 at lower viral loads, making them more susceptible to the virus. Conversely, this may result in seniors being more wary of the threat of COVID-19, and taking additional precautions to prevent infection relative to other age categories, such as limiting social interactions and taking more preventative measures in terms of hygiene. These key variables will provide an initial understanding of the relationship between the spread of the virus and population demographics. 
+The first and primary phase of investigation involves how the COVID-19 case rate is affected by key population demographics. For this, the key variables are COVID-19 case rate per 100,000 residents and the percentage population distribution of seniors (defined as 65 years old or older) within a state. The case rate per 100,000 was selected as the key output/dependent variable as it provides a standardized measure of the spread of COVID-19 across the states, taking into account the absolute population of the states. The senior percentage was selected as the key input/independent variable given that guidance had been released by the Centers for Disease Control and Prevention (CDC) that seniors belong to the age category for those at higher risk of COVID-19, and thus are a well studied and documented group. This is likely due to the both the fact that seniors in this age group are more likely or had greater access to be tested given their categorization and the fact that they would have a greater likelihood of exhibiting detectable COVID-19 related symptoms that would prompt them to get tested. An additional rationale for measuring the senior percentage is that they may also be more likely to contract COVID-19 at lower viral loads, making them more susceptible to the virus. Conversely, this may result in seniors being more wary of the threat of COVID-19, and taking additional precautions to prevent infection relative to other age categories, such as limiting social interactions and taking more preventative measures in terms of hygiene. These key variables will provide an initial understanding of the relationship between the spread of the virus and population demographics. 
 
 Following this, in the second phase of investigation the analysis considers other variables of state-level population that are considered factors of contractability, namely the rate of poverty (defined as the percent of individuals living under the federal poverty line in 2018) and the rate of unemployment (defined as the percent unemployment in 2018). Those living below the poverty line may have less access/are unable to afford to preventative controls such as sanitation products and masks that help prevent the spread of the virus, while those who are designated as unemployed may not have the flexibility of sheltering at home as well as access to the aforementioned preventative controls. As mentioned, these variables operationalize population metrics that may lead to greater case rates, and are already standardized as rates to account for varying absolute populations across states.
 
@@ -99,18 +99,16 @@ As mentioned in the introduction, the modeling goal for the COVID-19 case rate w
 
 The three models aim to investigate the relationship between the COVID-19 case rate, state population demographics, and a mask mandates. COVID-19 case rate per 100,000 is chosen as the key dependent variable to represent the proliferation of the COVID-19 pandemic in each state. The population percentage of seniors is chosen as the key independent variable as a proxy for susceptibility by innate state population make-up. The variables of poverty percentage, unemployment percentage, mask mandate policy, and population density per square miles are chosen as candidate covariates to further explore the aforementioned potential relationship.
 
+In order to allow for more simplistic and direct interpretations when analyzing the effect of the input variables on the output, it was determined that all percentage variables (senior, poverty, and unemployment) would be transformed into rates per 100,000 to align with the case rate variable. It will also serve to ease the burden on the readers of this report as like-for-like scaled relationships can be drawn between the variables. Given that this transformation is constant for all values (scalar multiplication of 100,000), it will have no effect on the distributions of the variables.
 
 ```{r}  
-# percentage variable re-scale to number_per_100k (need to double check where to put this part in EDA or model regression)
+# Percentage variables are re-scaled to raters per 100k
 
-df<-df %>%
-  mutate(
-    noneld_pre_existing_per_100k = 100000*non_elderly_pre_existing/population_2018,
-    white_per_100k = 100000*white_population_pct,
+df <-df %>%
+  mutate(    
     senior_per_100k = 100000*senior_pct,
     poverty_per_100k = 100000*poverty_pct, 
     unemployed_per_100k = 100000*unemployed_pct,
-    log_population_density = log(population_density)
   )
 ```
 
@@ -133,25 +131,10 @@ ggplot(data = df,
 
 As can be seen above, the distribution is fairly normal, and given that it has already been standardized as a rate across all states, there is no need to perform any transformations on this variable. Thus, the case rate per 100,000 variable can be leveraged as is as the dependent variable for all three models.
 
-Next, the distribution of the senior percentage variable is examined.
+Next, the distribution of the senior percentage transformed into the rate per 100,000 (as discussed in the Model Variables section) is examined.
 
 ```{r, warning=FALSE, message=FALSE}
-summary(df$senior_pct*100)
-
-ggplot(data = df,
-  mapping = aes(x= senior_pct*100)) +
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(10,21,1)) +
-  labs(title = 'Histogram of Percentage Population of Seniors', 
-  x = 'Percentage population of seniors (%)', y = 'Count') +
-  scale_x_continuous(breaks=seq(10,22,1))
-```
-
-As can be seen from the distribution above, again there is a fairly normal distribution in the percentage population of seniors across the state. Additionally, there do not seem to be any outliers within the distribution, given that the range of percentages fall between 11-21%. Therefore, there are no transformations that need to be made in order to restructure the distribution. However, it was determined that the percentages would be transformed into a rate per 100,000 value in order to allow for easier interpretation when analyzing the effect on the output variable which itself is based on scale of rate per 100,000. Given that this transformation is constant across all values, it has no effect on the normality of the distribution itself, as seen in the histogram below.
-
-```{r}
-df<-df %>%
-  mutate(
-    senior_per_100k = 100000*senior_pct)
+summary(df$senior_per_100k)
 
 ggplot(data = df,
   mapping = aes(x= senior_per_100k)) +
@@ -161,7 +144,9 @@ ggplot(data = df,
   scale_x_continuous(breaks=seq(10000,22000,1000))
 ```
 
-With the appropriate variables transformed, a plot is created to show the relationship between them. 
+As can be seen from the distribution above, again there is a fairly normal distribution in the population of seniors per 100,000 across the state. Additionally, there do not seem to be any outliers within the distribution, given that the range of rates fall between 11,000 and 21,000. Therefore, there are no transformations that need to be made in order to restructure the distribution, and this variable can be used across all three models.
+
+With the appropriate variable distributions investigated, a plot is created to analyze the relationship between them. 
 
 ```{r message=FALSE}
 df %>% 
@@ -175,18 +160,18 @@ df %>%
   )
 ```
 
-From the above plot, there is noticeable variation in the smoothed blue line. However, it can be posited that there is a inverse relationship between the variables given the roughly linear relationship in the overall downward trend in the line. In order to test this, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables.
+From the above plot, there is noticeable variation in the smoothed blue line. However, it can be posited that there is a inverse relationship between the variables given the roughly linear relationship in the overall downward trend in the line. In order to test this, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables. 
 
 $$
 case{\_}rate{\_}100k =\beta_0 + \beta_1 senior{\_}per{\_}100k
 $$
 
 ```{r}
+# Build the regression model for Model 1
 model1 <- lm(case_rate_100k ~ senior_per_100k , data = df)
-coeftest(model1, vcov = vcovHC)
 ```
 
-From the results of the regression using robust standard errors, the p-value of the senior rate variable is 0.056, which is close but not quite within the significant level of >0.05 to reject the null hypothesis that there is no correlation between case rate and senior rate. To improve the precision of the t-test, classical standard errors can be used. To determine the applicability of using classical standard errors, in addition to the three Classical Linear Model (CLM) assumptions necessary for the robust standard errors, the CLM assumption for homoskedastic conditional errors should be evaluated. If this additional assumption is met, the robust standard errors can be replaced by the classical standard errors. The assumption of homoskedasticity is met if the data does not have large variance among the residuals. 
+To improve the precision of the t-test of coefficients, classical standard errors can be used over robust standard errors to test the regression. To determine the applicability of using classical standard errors, in addition to the three Classical Linear Model (CLM) assumptions necessary for the robust standard errors, the CLM assumption for homoskedastic conditional errors should be evaluated. If this additional assumption is met, the robust standard errors can be replaced by the classical standard errors. The assumption of homoskedasticity is met if the data does not have large variance among the residuals. 
 
 To evaluate this assumption, the square root of the residuals (to remove any negative values) is plotted against the fitted values of the model. Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity.
 
@@ -198,13 +183,13 @@ plot(model1, which=3)
 bptest(model1)
 ```
 
-From the above plot, the variance in residuals can be seen to be roughly constant given the relative flatness of the plotted red line, thus meeting the assumption of homoskedastic conditional errors. This is supported by the p-value of 0.497 from the Breusch-Pagan test, meaning there is a failure to reject that null hypothesis that the conditional errors are not heteroskedastic. With this additional assumption met, the regression model is rerun using a t-test with classical standard errors. 
+From the above plot, the variance in residuals can be seen to be roughly constant given the relative flatness of the plotted red line, thus meeting the assumption of homoskedastic conditional errors. This is supported by the p-value of 0.497 from the Breusch-Pagan test, meaning it fails to reject the null hypothesis that the conditional errors are not heteroskedastic. With this additional assumption met, the regression model is run using a t-test with classical standard errors. 
 
 ```{r}
 coeftest(model1)
 ```
 
-As can be seen from the above output, with the improved precision of the classical standard errors the variable for senior percentage is shown to be significant within the model specification with a p-value of 0.023. Furthermore, The coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior percentage and the case rate. In practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
+As can be seen from the above output, the variable for senior percentage is shown to be significant within the model specification with a p-value of 0.023. Furthermore, The coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior percentage and the case rate. In practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
 
 Next, the other CLM assumptions are revisited to determine the whether the coefficients are unbiased and consistent. However, the assumption for IID is not detailed here given that it is evaluated more generally for all three models within section 3. 
 
@@ -241,7 +226,7 @@ Finally the Cook's distance is examined by a plot of the residuals vs the model 
 plot(model1, which=5)
 ```
 
-It is also noted that there is no test conducted for collinearity given there is only one input variable in model 1.
+It is also noted that there is no test conducted for collinearity in model 1 given there is only one input variable.
 
 ### Model 2
 
