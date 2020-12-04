@@ -534,8 +534,6 @@ df %>%
   )
 ```
 
-### @Frank, this was my previous analysis of the POPULATION DENSITY variable, feel free to use any of this
-
 Next, the distribution of the population density variable is examined.
 
 ```{r}
@@ -588,11 +586,11 @@ df %>%
 
 #### Model 3 Regression
 
-Next, the regression model for model 3 is based on the existing work from model 2. Two additional variables will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor considering nature of spread in disease. 
+Next, the regression model for model 3 is based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor considering nature of spread in disease. 
 
 The regression coefficient shows that Mask_public_bool variable is highly significant. And the result suggests that public mask mandate policy has positive effect in bringing the case number down. In detail, the COVID-19 case rate can be reduced by 945 out of every 100k people if the state enforces public mask mandate keeping all other variables the same. 
 
-The population density variable however is not significant in the regression even it is considered as one of the major factors to the spread of disease. So according to the regression, we fail to reject the null hypothesis that population density have an direct impact to the COVID-19 case rate. There could be multiple factors causing the population density to be insignificant. For example, the population density is calculated by population divided by total square miles. As a result the numbers can be diluted for states that have major cities with high population density, but very little urbanization in the majority part of the state suburb area. In addition, as stated earlier in the research, Washington, D.C. is considered as a state however the demography structure and geographical related characteristics are different from other states. And due to a sample sample we have, individual variables that exhibit unique characteristics could lead to certain degree of bias.
+The population density variable however is not significant in the regression even it is considered as one of the major factors to the spread of disease. So according to the regression, we fail to reject the null hypothesis that population density have an direct impact to the COVID-19 case rate. There could be multiple factors causing the population density to be insignificant. For example, the population density is calculated by population divided by total square miles. As a result the numbers can be diluted for states that have major cities with high population density, but very little urbanization in the majority part of the state suburb area. In addition, as stated earlier in the research, Washington, D.C. is considered as a state however the demography structure and geographical related characteristics are different from other states. And due to a small sample we have, individual variables that exhibit unique characteristics could lead to certain degree of bias.
 
 After careful discussion, the team still decided to keep "population_density" variable in model 3 even it is insignificant for the following reasons. First, adding population density variable has little effect on the change of coefficients of control variables in model 2. Second, we don't see evidence that the variable worsens the validation of OLS assumptions compared to model 2. Finally, the variable do offer meaningful information that is relevant to the main research question.
 
@@ -607,19 +605,30 @@ coeftest(model3)
 ```
 
 CLM assumptions check for Model 3:
+
+####Zero Conditional Mean
+
+The Residual vs Fitted chat shows a almost flat line that is close to zero, with the tails a bit skewed. There is no strong evidence that there are unincoorperated linear relationship that we are not capturing from the control variables.
 ```{r}
-#Zero Conditional Mean
+
 plot(model3, which=1)
+```
 
-#Normality of errors
+####Normality of errors
+From the Normal Q-Q plot below, the points generally stay close to the normal line, with the tails exhibit certain degree of skew. 
+```{r}
 plot(model3, which=2)
+```
+####Homoskedasticity
+```{r}
 
-#Homoskedasticity
 plot(model3, which=3)
-
+```
+```{r}
 #Cook distance
 plot(model3, which=5)
-
+```
+```{r}
 #Collinearity
 vif(model3)
 ```
