@@ -25,7 +25,7 @@ library(car)
 ```
 
 ```{r variables, warning=FALSE, results='hide'}
-df <- read.csv("covid-19.csv", header = TRUE)
+df <- read.csv("COVID-19.csv", header = TRUE)
 df<-df%>%
   rename(case_rate_100k = 'Case.Rate.per.100000',
          death_rate_100k = 'Death.Rate.per.100000',
@@ -408,6 +408,81 @@ coeftest(model2)
 #### (need to update)
 From the results of the regression, none of the coefficients of investigated variables in model 2 are significant (p-value < 0.05). Among these regression coefficient tests,  the p-value regarding the poverty percentage variable is the lowest (0.05755).  In addition, its positive estimated coefficient is consistent with the statement that low-income communities are at high pandemic risk claimed by mainstream media these days. 
 
+### Model 2 limits
+
+#### i. IID Sampling 
+( Discussed in the common section)
+
+#### ii.Linear Conditional Expectation
+Assessing non-linear in higher-dimensional space: look at the predicted vs. residuals of the model.
+
+```{r, echo=FALSE}
+df<- df%>% 
+  mutate(
+    model2_preds = predict(model2), 
+    model2_resids = resid(model2)
+  ) 
+df %>% 
+  ggplot(aes(model2_preds, model2_resids)) + 
+  geom_point() + 
+  stat_smooth()
+```
+
+####iii.No Perfect Collinearity
+First, check if any variables were dropped by R. No coefficient is missing, which mean there is no perfect collinearity. 
+
+```{r}
+model2$coefficients
+```
+
+In addition, all the variance inflation factors are less than 4, which doesn't indicate the exisitence of collinearity. 
+
+```{r}
+vif(model2)
+```
+
+####iv.Homoskedastic Errors
+10 is Florida, 33 is New York, 35 is North Dakota
+
+```{r, echo=FALSE}
+plot(model2, which=3)
+```
+
+```{r, echo=FALSE}
+bptest(model2)
+```
+
+####v.Normally Distributed Errors
+Check the normality of error distribution based on the histogram of residuals and the qqplot.
+
+```{r, echo=FALSE, warning=FALSE}
+plot_one <- df %>% 
+  ggplot(aes(x = model2_resids)) + 
+  stat_bin(bins = 25)
+  geom_histogram()
+  
+plot_two <- df %>% 
+  ggplot(aes(sample = model2_resids)) + 
+  stat_qq() + stat_qq_line()
+
+plot_one / plot_two
+```
+
+#### GGPairs
+
+```{r, echo=FALSE}
+df %>% 
+  select(case_rate_100k, senior_per_100k, poverty_per_100k, unemployed_per_100k) %>% 
+  GGally::ggpairs()
+```
+
+#### Cook Distance 
+10 Florida, 20 Maine, 35 North Dakota
+
+```{r, echo =FALSE}
+plot(model2, which = 5)
+```
+
 ### Model 3 
 
 For Model 3, policy related variables will be introduced for the analytics. Policy variable "Mandate face mask use by all individuals in public spaces" (renamed as mask_public) is selected as control variable to predict the case rate. Given it has been proved that mask is effective in preventing the transmission of disease, it is expected that the mask policy mandate in public would have an effect in reducing the case rate. 
@@ -545,168 +620,11 @@ vif(model3)
 
 ## 3. Limitations of the Models
 
-Firstly, the most general requirement for the linear model is that data points be independent and identically distributed (IID). While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. In addition, all states are involved in the same market economy system of the country to varying degrees, even though there are economic performance divisions across the states. Likewise, certain regions of the country may also have similar racial compositions due to a shared history across general geographic regions. While this is acknowledged to occur, the effect is likely minor compared to the policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
+The most general requirement for all the linear models is that data points be independent and identically distributed (IID) which they are built off of. While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. In addition, all states are involved in the same market economy system of the country to varying degrees, even though there are economic performance divisions across the states. Likewise, certain regions of the country may also have similar demographics due to a shared history across general geographic regions. While this is acknowledged to occur, the effect is likely minor compared to the policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
 
-Secondly, the process being modeled must be described by a linear conditional expectation function of the variables which are included, in order for the linear regression to be valid. This can be assessed after the fact by visualizing the model over the range of each variable alongside the data, or also by visualizing the residuals over the range of each variable. For the purpose of this assumption and other model or data related assumptions, only the Model 3-a will be used as it is the most inclusive. 
+In examining the results of various diagnostics across different models, generally the CLM assumptions are best met with the second model. In the first model, deviations away from certains assumptions are the strongest. This is seen mostly with regards to the linear conditonal expectation assumption, where the residuals against the fitted values have a noticeable inverted "V" shape as opposed to being constant around zero. In the second model, the same diagnostic shows that the assumption is better met. 
 
-```{r}
-avg_pop <- log10(mean(df$population_density))
-avg_pov <- mean(df$poverty_pct)
-avg_mask <- mean(df$mask_public_bool)
-y_pop <- model3$coefficients[1] + model3$coefficients[2]*log10(df$population_density) + model3$coefficients[3]*avg_pov + model3$coefficients[4]*avg_mask
-y_pov <- model3$coefficients[1] + model3$coefficients[2]*avg_pop + model3$coefficients[3]*df$poverty_pct + model3$coefficients[4]*avg_mask
-y_pop_nomask <- model3$coefficients[1] + model3$coefficients[2]*avg_pop + model3$coefficients[3]*avg_pov
-y_pov_nomask <- model3$coefficients[1] + model3$coefficients[2]*avg_pop + model3$coefficients[3]*df$poverty_pct
-
-df %>% 
-  ggplot() + 
-  geom_point(aes(x = log10(population_density), y = case_rate_100k, 
-                 group = factor(mask_public_bool), color = factor(mask_public_bool))) + 
-  geom_line(aes(x = log10(population_density), y = y_pop, color = "red")) +
-  geom_line(aes(x = log10(population_density), y = y_pop_nomask, color = "blue")) +
-  scale_color_manual(labels = c("No", "Yes", "No", "Yes"), 
-                     values = c("blue", "red", "blue", "red")) +
-  labs(
-    title = 'Linearity of Variables, Population Density', 
-    x = 'Base 10 Log of Population Density', 
-    y = 'Case Rate', 
-    color = 'Mask Mandate'
-  )
-df %>% 
-  ggplot() + 
-  geom_point(aes(x = poverty_pct, y = case_rate_100k, group = factor(mask_public_bool), 
-                 color = factor(mask_public_bool))) + 
-  geom_line(aes(x = poverty_pct, y = y_pov, color = "red")) +
-  geom_line(aes(x = poverty_pct, y = y_pov_nomask, color = "blue")) +
-  scale_color_manual(labels = c("No", "Yes", "No", "Yes"), 
-                     values = c("blue", "red", "blue", "red")) +
-  labs(
-    title = 'Linearity of Variables, Poverty Percentage', 
-    x = 'Poverty Percentage', 
-    y = 'Case Rate', 
-    color = 'Mask Mandate'
-  )
-```
-
-Linearity for the three regressed variables is demonstrated above. As can be seen when mask policy and population density are varied, the data generally follows a linear trend. This is similar when the poverty percentage is varied, although at higher levels of poverty the presence of a mask mandate made the case rate unexpectedly low. It appears that possible a negative quadratice function may fit the data better, although it appears close enough to linear that this assumption may hold. 
-```{r}
-df %>% {
-   ggplot(mapping = aes(x = log(df$population_density), y = model3$residuals)) +
-      geom_point() + stat_smooth(se = TRUE) +
-      ggtitle("Model Residuals versus Population Density") +
-      xlab("Logarithm of Population Density") +
-      ylab("Residual")
-}
-df %>% {
-   ggplot(mapping = aes(x = df$poverty_pct, y = model3$residuals)) +
-      geom_point() + stat_smooth(se = TRUE) +
-      ggtitle("Model Residuals versus Poverty Percentage") +
-      xlab("Poverty Percentage (%)") +
-      ylab("Residual")
-}
-df %>% {
-   ggplot(mapping = aes(x = log(df$mask_public_bool), y = model3$residuals)) +
-      geom_point() + stat_smooth(se = TRUE) +
-      ggtitle("Model Residuals versus Mask Mandate") +
-      xlab("Public Mask Mandate") +
-      ylab("Residual")
-}
-```
-
-Thirdly, related to the relationship of the residuals to the data, homoscedasticity can be assessed by visualizing the size of residuals across the range of each variable. Alternatively, it can also be done via the Breusch-Pagan test to more objectively determine whether homoscedasticity is not present in the data. Using the first method with the plots above, the residuals to each of the four regressions appear to be evenly spread throughout the range of the x axis. Therefore, this assumption can also be reasonably assumed to be met. The normal distribution of these errors also appears to be well met by the linear models, with most data points close to their respective line causing most residuals to be centered around zero.
-
-Perfect colinearity is automatically detected by the R regression algorithms, which drop potential variables if they have complete colinearity with another variable. Near perfect colinearity is more problematic to detect, but a common hint to its existence is large standard errors on colinear features. In Model 3-a, all of the standard errors for model coefficients are at least less than half of the value of the coefficient itself. Therefore, near-perfect colinearity can be assumed to not be taking place between these variables. 
-```{r}
-correlation_one <- cor(log(df$population_density), df$poverty_pct)
-vif_one <- 1/(1-(correlation_one^2))
-correlation_two <- cor(log(df$population_density), df$mask_public_bool)
-vif_two <- 1/(1-(correlation_two^2))
-correlation_three <- cor(df$poverty_pct, df$mask_public_bool)
-vif_three <- 1/(1-(correlation_three^2))
-```
-A more methodical approach for evaluating if there is too high of colinearity between features is through the calculation of the Variance Inflation Factor (VIF). For the three variables in Model 3-A, the VIF values between the three combinations of the three variables are `r vif_one`, `r vif_two`, and `r vif_three`. Generally, as long as the VIF is below four there can be assumed not enough colinearity to violate the assumption as is the case in this model.
-
-Finally, the linear model is also assumed to generate residual error that is normally distributed away from the predicted values. A simple and straightforward way to assess this is through a histogram of the residuals of the model.
-```{r}
-hist(model3$residuals, main = "Model Residuals", xlab = "Residual")
-```
-As seen above, this assumption is generally well met. 
-
-
-### Model 2 limits
-
-#### i. IID Sampling 
-( Discussed in the common section)
-
-#### ii.Linear Conditional Expectation
-Assessing non-linear in higher-dimensional space: look at the predicted vs. residuals of the model.
-
-```{r, echo=FALSE}
-df<- df%>% 
-  mutate(
-    model2_preds = predict(model2), 
-    model2_resids = resid(model2)
-  ) 
-df %>% 
-  ggplot(aes(model2_preds, model2_resids)) + 
-  geom_point() + 
-  stat_smooth()
-```
-
-####iii.No Perfect Collinearity
-First, check if any variables were dropped by R. No coefficient is missing, which mean there is no perfect collinearity. 
-
-```{r}
-model2$coefficients
-```
-
-In addition, all the variance inflation factors are less than 4, which doesn't indicate the exisitence of collinearity. 
-
-```{r}
-vif(model2)
-```
-
-####iv.Homoskedastic Errors
-10 is Florida, 33 is New York, 35 is North Dakota
-
-```{r, echo=FALSE}
-plot(model2, which=3)
-```
-
-```{r, echo=FALSE}
-bptest(model2)
-```
-
-####v.Normally Distributed Errors
-Check the normality of error distribution based on the histogram of residuals and the qqplot.
-
-```{r, echo=FALSE, warning=FALSE}
-plot_one <- df %>% 
-  ggplot(aes(x = model2_resids)) + 
-  stat_bin(bins = 25)
-  geom_histogram()
-  
-plot_two <- df %>% 
-  ggplot(aes(sample = model2_resids)) + 
-  stat_qq() + stat_qq_line()
-
-plot_one / plot_two
-```
-
-#### GGPairs
-
-```{r, echo=FALSE}
-df %>% 
-  select(case_rate_100k, senior_per_100k, poverty_per_100k, unemployed_per_100k) %>% 
-  GGally::ggpairs()
-```
-
-#### Cook Distance 
-10 Florida, 20 Maine, 35 North Dakota
-
-```{r, echo =FALSE}
-plot(model2, which = 5)
-```
+However, when adding more variables in the third model, other assumptions begin to be less well met. For example, the normality of the error term in the model is less well fit than it was in the earlier models. It can be seen in the QQ plot for the model how at fitted values towards the edges of the model's range, the is the greatest deviation away from normality. This assumption is generally less important than that of the linear conditional expectation, however, where the latter is a fundamental part of CLM. 
 
 ## 4. Regression Table
 
@@ -745,15 +663,15 @@ An urban to rural ratio would be explanatory of the population density variable 
 
 ### 5-2: Median Income
 
-Knowledge of the median income for a state would give an indication of the relative job status for a working person in that state. This would be important for the case rate to understand about how many people work in low paying jobs that are more frequently in close contact with others (such as the service industry, gig industry, etc.). Higher median income may imply that more workers are able to function remotely with greater social distancing. A higher median income would then be negatively related to the covid case rate. It would also be explanatory in a way that makes the poverty percentage variable less impactful, where either of these variables may be considered as proxies for one another. Because inclusion of the median income variable would led to a lower magnitude poverty percentage variable, and that the coefficient of the poverty percentage variable is positive, this would cause a positive omitted variable bias away from zero. 
+Knowledge of the median income for a state would give an indication of the relative job status for a working person in that state. This would be important for the case rate to understand about how many people work in low paying jobs that are more frequently in close contact with others (such as the service industry, gig industry, etc.). Higher median income may imply that more workers are able to function remotely with greater social distancing. A higher median income would then be negatively related to the COVID case rate. It would also be explanatory in a way that makes the poverty percentage variable less impactful, where either of these variables may be considered as proxies for one another. Because inclusion of the median income variable would led to a lower magnitude poverty percentage variable, and that the coefficient of the poverty percentage variable is positive, this would cause a positive omitted variable bias away from zero. 
 
 ### 5-3: Gender Ratio
 
-The ratio of gender between women and men may impact the covid case rate in that men are more suscepitble to viral infections and generally have lower life expectancies from lifestyle differences. Greater susceptibility may relate to the case rate in that men may more often become infected when exposed to COVID under similar circumstances as a women. Their shorter life expentancy may also impact the case rate in that more COVID cases may result in greater or more serious symptoms, with less occurances of an infection that is asymptomatic or goes undetected. In either of these cases, a higher fraction of men among the population would lead to an overall higher covid case rate. 
+The ratio of gender between women and men may impact the COVID case rate in that men are more suscepitble to viral infections and generally have lower life expectancies from lifestyle differences. Greater susceptibility may relate to the case rate in that men may more often become infected when exposed to COVID under similar circumstances as a women. Their shorter life expentancy may also impact the case rate in that more COVID cases may result in greater or more serious symptoms, with less occurances of an infection that is asymptomatic or goes undetected. In either of these cases, a higher fraction of men among the population would lead to an overall higher COVID case rate. 
 
 This variable could also be partially explained by the senior percentage variable, because of the increase of women in gender ratios generally as people get older. Therefore, introducing the gender ratio variable into the model would lower the value of the coefficient to the senior percentage variable to be less negative. This would be a negative omitted variable bias away towards zero. 
 
-However, the magnitude of this change is likely to not be large due to other causal mechanisms between seniors and covid case rate. While men may more frequently present COVID symptoms, older people in general are also more susceptible to the virus due to their physical condition and would also present more symptoms than non seniors. When comparing the two, generally seniors are considered as more at-risk of COVID complications than men across all ages, and so the senior percentage would still have a greater impact on the overall covid case rate than the gender ratio. 
+However, the magnitude of this change is likely to not be large due to other causal mechanisms between seniors and COVID case rate. While men may more frequently present COVID symptoms, older people in general are also more susceptible to the virus due to their physical condition and would also present more symptoms than non seniors. When comparing the two, generally seniors are considered as more at-risk of COVID complications than men across all ages, and so the senior percentage would still have a greater impact on the overall COVID case rate than the gender ratio. 
 
 ### 5-4: Mask Use Among Population
 
@@ -763,7 +681,7 @@ A variable capturing the mask use among the population would likely reduce the e
 
 ### 5-5: GDP Percentage of Tourism
 
-The economic standing of a state not only affects the individual households of its population, but also includes how it interacts with other states and how its peoples' lives might have been economically changed by the pandemic. One way that a state may increase its number of covid cases is both from tourists or others visiting during the pandemic and bringing disease, but also if its own population must work in close contact with others serving them in the tourism industry. In addition, if certain key industries to a state, such as tourism, layed off many workers, they would likely have to take lower paying close contact jobs such as in the service or gig economy in order to continue having a livelihood. This would further lead to a higher covid case rate 
+The economic standing of a state not only affects the individual households of its population, but also includes how it interacts with other states and how its peoples' lives might have been economically changed by the pandemic. One way that a state may increase its number of COVID cases is both from tourists or others visiting during the pandemic and bringing disease, but also if its own population must work in close contact with others serving them in the tourism industry. In addition, if certain key industries to a state, such as tourism, layed off many workers, they would likely have to take lower paying close contact jobs such as in the service or gig economy in order to continue having a livelihood. This would further lead to a higher COVID case rate 
 
 These effects may be included with a variable that demonstrates how much of a state's GDP is from tourism. It would be related to other economic indicator variables, such as the percent of the population living in poverty. While poverty is a broader phenomena, the number of people in poverty in the pandemic could be potentially higher due to negative growth of the tourism industry. Therefore, it is expected that states with a greater focus on tourism may also have more people in poverty in the pandemic. This would take some of the explanatory power of the poverty variable away, resulting in its model coefficient becoming less positive. This would result in a positive omitted variable bias away from zero. 
 
