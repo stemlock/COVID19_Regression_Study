@@ -25,7 +25,7 @@ library(car)
 ```
 
 ```{r variables, warning=FALSE, results='hide'}
-df <- read.csv("COVID-19.csv", header = TRUE)
+df <- read.csv("covid.csv", header = TRUE)
 df<-df%>%
   rename(case_rate_100k = 'Case.Rate.per.100000',
          death_rate_100k = 'Death.Rate.per.100000',
@@ -114,11 +114,9 @@ df <-df %>%
 
 ### Model 1
 
-For the first model, the relationship between the COVID-19 case rate per 100,000 and the population percentage distribution of seniors was analyzed. First, the distribution of the case rate dependent variable is examined.
+For the first model, the relationship between the COVID-19 case rate per 100,000 and the population percentage distribution of seniors was analyzed. 
 
-```{r}
-summary(df$case_rate_100k)
-```
+First, the distribution of the case rate dependent variable is examined.
 
 ```{r, warning=FALSE, message=FALSE}
 ggplot(data = df,
@@ -156,7 +154,7 @@ df %>%
   labs(
     title = 'COVID-19 Case Rate due to Senior Population', 
     x = 'Number of seniors per 100,000', 
-    y = 'COVID case rate per 100,000'
+    y = 'COVID-19 case rate per 100,000'
   )
 ```
 
@@ -506,13 +504,13 @@ df <- df %>%
 cat('Count for states that enforced mask mandate in public: ', 
     length(df$mask_public_bool[df$mask_public_bool==1]))
 
-cat('Count for states did not enforced mask mandate in public: ', 
+cat('\nCount for states did not enforced mask mandate in public: ', 
     length(df$mask_public_bool[df$mask_public_bool==0]))
 ```
 
 Histograms below that shows the distribution of states that has public mask policy or not. Both distributions are not very normal with relatively small skews toward both tails. 
 
-```{r}
+```{r, message = FALSE}
 
 hist(df$case_rate_100k[df$mask_public_bool == 1], xlab='Case Rate', ylab='Count', 
      col='skyblue', main='Case Rate - States Enforced Mask Mandate in Public')
@@ -548,7 +546,7 @@ histogram_of_pdensity <- df %>%
 histogram_of_pdensity
 ```
 
-As can be seen from the histogram, although most of the population density is concentrated in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is D.C. with a value of 11,496. This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Alternatively, the data point could have been droppped from the sample, but given the already small sample size, it was determined that a better approach would be to keep it within the sample. Once this transformation was performed, it is shown that there is a relatively normal distribution of population densities (see figure below).
+As can be seen from the histogram, although most of the population density is concentrated in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is D.C. with a value of 11,496. This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Alternatively, the data point could have been dropped from the sample, but given the already small sample size, it was determined that a better approach would be to keep it within the sample. Once this transformation was performed, it is shown that there is a relatively normal distribution of population densities (see figure below).
 
 ```{r}
 # Find the outlier data points
@@ -570,20 +568,6 @@ histogram_of_pdensity <- df %>%
 histogram_of_pdensity
 ```
 
-With the appropriate variables transformed, a plot is created to show the relationship between them. 
-
-```{r message=FALSE}
-df %>% 
-  ggplot(aes(l_population_density, case_rate_100k)) + 
-  geom_smooth(se = FALSE) +
-  geom_point() +   
-  labs(
-    title = 'COVID Case Rate due to Population Density', 
-    x = 'Log of population density per square miles', 
-    y = 'COVID case rate per 100,000'
-  )
-```
-
 #### Model 3 Regression
 
 Next, the regression model for model 3 is based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor considering nature of spread in disease. 
@@ -592,7 +576,7 @@ The regression coefficient shows that Mask_public_bool variable is highly signif
 
 The population density variable however is not significant in the regression even it is considered as one of the major factors to the spread of disease. So according to the regression, we fail to reject the null hypothesis that population density have an direct impact to the COVID-19 case rate. There could be multiple factors causing the population density to be insignificant. For example, the population density is calculated by population divided by total square miles. As a result the numbers can be diluted for states that have major cities with high population density, but very little urbanization in the majority part of the state suburb area. In addition, as stated earlier in the research, Washington, D.C. is considered as a state however the demography structure and geographical related characteristics are different from other states. And due to a small sample we have, individual variables that exhibit unique characteristics could lead to certain degree of bias.
 
-After careful discussion, the team still decided to keep "population_density" variable in model 3 even it is insignificant for the following reasons. First, adding population density variable has little effect on the change of coefficients of control variables in model 2. Second, we don't see evidence that the variable worsens the validation of OLS assumptions compared to model 2. Finally, the variable do offer meaningful information that is relevant to the main research question.
+After careful discussion, the team still decided to keep "population_density" variable in model 3 even it is insignificant for the following reasons. First, adding population density variable has little effect on the change of coefficients of control variables in model 2. Second, we don't see evidence that the variable worsens the validation of CLM assumptions compared to model 2. Finally, the variable do offer meaningful information that is relevant to the main research question.
 
 ```{r}
 model3 <- lm(case_rate_100k ~ senior_per_100k 
@@ -606,7 +590,7 @@ coeftest(model3)
 
 CLM assumptions check for Model 3:
 
-####Zero Conditional Mean
+#### Zero Conditional Mean
 
 The Residual vs Fitted chat shows a almost flat line that is close to zero, with the tails a bit skewed. There is no strong evidence that there are unincoorperated linear relationship that we are not capturing from the control variables.
 ```{r}
@@ -614,12 +598,13 @@ The Residual vs Fitted chat shows a almost flat line that is close to zero, with
 plot(model3, which=1)
 ```
 
-####Normality of errors
+#### Normality of errors
 From the Normal Q-Q plot below, the points generally stay close to the normal line, with the tails exhibit certain degree of skew. 
 ```{r}
 plot(model3, which=2)
 ```
-####Homoskedasticity
+
+#### Homoskedasticity
 ```{r}
 
 plot(model3, which=3)
@@ -665,7 +650,7 @@ In model 1, the coefficient of -0.174 for the senior rate per 100,000 is signifi
 
 Moving onto model 3, the magnitude of the coefficient for senior rate increases once again to a value of -0.242 while the statistical significance increases with a decreased p-value of 0.0004 (per the regression results from the Model 3 section). As highlighted before, the more complex model does a better job of predicting the effect of the senior rate variable. Conversely, the p-values for the poverty rate and unemployment rate coefficients become less significant, as they increase to 0.002 and 0.049 respectively. However, there is almost no detectable change in the coefficient values, as poverty rate is still at 0.002 and unemployment rate increases to -0.004. The change in the p-values are likely a direct result of the added variables of mask policy and the logarithmic transform of population density, where these variables introduce some additional variance in the model 2 covariates. Notably, the coefficient for the mask policy covariate is significant with a p-value of 0.0027 and has by far the greatest effect on the outcome variable with a coefficient of -945.6. The populuation density covariate is not significant with a p-value of 0.3369.
 
-In terms of practical significance, there is great discrepancy between the effect of the mask policy variable compared to the other three significant features. With a coefficient of -945.6, this means that given the binary mask policy variable, when a mask policy is implemented (value of 1), there is an decrease in case rate of roughly 946 per 100,000 compared to when the policy is not in place. The next largest effect is from the senior rate variable, where in the final model, the coefficient of -0.242 translates as a decrease of 0.242 cases per 100,000 with every additional senior per 100,000. More intuitively, it can be said that there is an decrease of roughly 1 case per 100,000 with every 5 additional seniors per 100,000. This effect is roughly 190 times smaller than the effect of wearing a mask. Similarly, the effects of both poverty rate and unemployment rate are nominal. For every 500 additional people per 100,000 who are below the poverty line, there is 1 additional case per 100,000, and for every 250 additional people per 100,000 who are unemployed, there is 1 fewer case per 100,000. In comparison with likewise minimal effect of the senior rate, these effects are 100 and 50 times smaller respectively.
+In terms of practical significance, there is great discrepancy between the effect of the mask policy variable compared to the other three significant features. With a coefficient of -945.6, this means that given the binary mask policy variable, when a mask policy is implemented (value of 1), there is an decrease in case rate of roughly 945 per 100,000 compared to when the policy is not in place. The next largest effect is from the senior rate variable, where in the final model, the coefficient of -0.242 translates as a decrease of 0.242 cases per 100,000 with every additional senior per 100,000. More intuitively, it can be said that there is an decrease of roughly 1 case per 100,000 with every 4 additional seniors per 100,000. This effect is roughly 190 times smaller than the effect of wearing a mask. Similarly, the effects of both poverty rate and unemployment rate are nominal. For every 500 additional people per 100,000 who are below the poverty line, there is 1 additional case per 100,000, and for every 250 additional people per 100,000 who are unemployed, there is 1 fewer case per 100,000. In comparison with likewise minimal effect of the senior rate, these effects are 100 and 50 times smaller respectively.
 
 ## 5. Omitted Variables
 
