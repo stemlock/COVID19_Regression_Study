@@ -102,7 +102,7 @@ As mentioned in the introduction, the modeling goal for the COVID-19 case rate w
 
 The three models aim to investigate the relationship between the COVID-19 case rate, state population demographics, and a mask mandates. COVID-19 case rate per 100,000 is chosen as the key dependent variable to represent the proliferation of the COVID-19 pandemic in each state. The population percentage of seniors is chosen as the key independent variable as a proxy for susceptibility by innate state population make-up. The variables of poverty percentage, unemployment percentage, mask mandate policy, and population density per square miles are chosen as candidate covariates to further explore the aforementioned potential relationship.
 
-In order to allow for more simplistic and direct interpretations when analyzing the effect of the input variables on the output, it was determined that all percentage variables (senior, poverty, and unemployment) would be transformed into rates per 100,000 to align with the case rate variable. It will also serve to ease the burden on the readers of this report as like-for-like scaled relationships can be drawn between the variables. Given that this transformation is constant for all values (scalar multiplication of 100,000), it will have no effect on the distributions of the variables.
+In order to allow for more simplistic and direct interpretations when analyzing the effect of the input variables on the output, it was determined that all percentage variables (senior, poverty, and unemployment) would be transformed into rates per 100,000 to align with the case rate variable. It will also serve to ease the burden on the readers of this report as like-for-like scaled relationships can be drawn between the variables. Given that this transformation is constant for all values (scalar multiplication of 100,000 for the seniors variable, and 1,000 for poverty and unemployment), it will have no effect on the distributions of the variables.
 
 ```{r}  
 # Percentage variables are re-scaled to rates per 100k
@@ -110,8 +110,8 @@ In order to allow for more simplistic and direct interpretations when analyzing 
 df <-df %>%
   mutate(    
     senior_per_100k = 100000*senior_pct,
-    poverty_per_100k = 100000*poverty_pct, 
-    unemployed_per_100k = 100000*unemployed_pct,
+    poverty_per_100k = 1000*poverty_pct, 
+    unemployed_per_100k = 1000*unemployed_pct,
   )
 ```
 
