@@ -477,7 +477,7 @@ histogram_of_pdensity
 
 ### Model 3 Regression
 
-Next, the regression model for model 3 is based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor considering nature of spread in disease. 
+Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor related to the spread of disease. 
 
 The regression coefficient shows that Mask_public_bool variable is highly significant. And the result suggests that public mask mandate policy has positive effect in bringing the case number down. In detail, the COVID-19 case rate can be reduced by 945 out of every 100k people if the state enforces public mask mandate keeping all other variables the same. 
 
@@ -485,7 +485,8 @@ The population density variable however is not significant in the regression eve
 
 After careful discussion, the team still decided to keep "population_density" variable in model 3 even it is insignificant for the following reasons. First, adding population density variable has little effect on the change of coefficients of control variables in model 2. Second, we don't see evidence that the variable worsens the validation of CLM assumptions compared to model 2. Finally, the variable do offer meaningful information that is relevant to the main research question.
 
-```{r}
+```{r, warning=FALSE}
+
 model3 <- lm(case_rate_100k ~ senior_per_100k 
               + poverty_per_100k 
               + unemployed_per_100k 
@@ -495,9 +496,16 @@ coeftest(model3)
 
 ```
 
-CLM assumptions check for Model 3:
+
+### CLM Assumptions Validation for Model 3:
+
+#### I.I.D Assumption
+
+
+( Discussed in the common section)
 
 #### Zero Conditional Mean
+
 
 The Residual vs Fitted chat shows a almost flat line that is close to zero, with the tails a bit skewed. There is no strong evidence that there are unincoorperated linear relationship that we are not capturing from the control variables.
 ```{r}
@@ -505,24 +513,41 @@ The Residual vs Fitted chat shows a almost flat line that is close to zero, with
 plot(model3, which=1)
 ```
 
-#### Normality of errors
-From the Normal Q-Q plot below, the points generally stay close to the normal line, with the tails exhibit certain degree of skew. 
+#### Normality of Errors
+
+
+From the Normal Q-Q plot below, the points generally stay close to the normal line, with the tails exhibit certain degree of skew. There is no significant evidence of concerning normality in the errros.
 ```{r}
 plot(model3, which=2)
 ```
 
 #### Homoskedasticity
+
+
+According to the plot of Homoskedasticity, the standardized residual falls into a reasonable range and the line looks smooth without concerning skews. There is no significant evidence that the model violates homoskedasticity assumptions.
 ```{r}
 
 plot(model3, which=3)
+
 ```
+
+#### Collinearity
+
+
+Based on the Variance Inflation Factors check, all the variables have variance-inflation factors less than 4. As a result, there's no strong evidence of collinearity concern within the model. 
 ```{r}
-#Cook distance
+
+vif(model3)>4
+```
+
+#### Cook's Distance
+
+
+From the Cook's plot, there is no strong evidence of concerning outliers.
+
+```{r}
+
 plot(model3, which=5)
-```
-```{r}
-#Collinearity
-vif(model3)
 ```
 
 
