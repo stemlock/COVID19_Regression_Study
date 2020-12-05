@@ -314,10 +314,10 @@ Finally, the coefficient of the unemployed_per_100k is statistically significant
 ### Model 2 Limitations
 
 #### i. IID Sampling 
-(Would be discussed in the following section - 3. Limitations of the Models)
+(This will be discussed in the following section - 3. Limitations of the Models)
 
 #### ii.Linear Conditional Expectation
-To assess the linear conditional expectation assumption in higher-dimensional space, the plots of predicted versus residuals of the model 2 is investigated as follow.  
+To assess the linear conditional expectation assumption in higher-dimensional space, the plots of predicted versus residuals of the model 2 is investigated as follows.  
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 df<- df%>% 
@@ -331,38 +331,37 @@ df %>%
   stat_smooth()
 ```
 
-Overall, the residuals maintain around zero across the predicted range. There is no assumption violation phenomenon could be observed here. 
+Overall, the residuals maintain around zero across the predicted range. There is no assumption violation phenomenon that can be observed here. 
 
 #### iii.No Perfect Collinearity
 
-Since there are multiple covariates included in this model compared to the model 1, there is more concern about the no perfect collinearity assumption here
-First, the list of variables coefficients shows that no variables were dropped, which mean there is no perfect collinearity detected by the R function. 
+Since there are multiple covariates included in this model compared to the model 1, there is more concern about the no perfect collinearity assumption here. First, the list of variable coefficients shows that no variables were dropped, which means there is no perfect collinearity detected by the R function. 
 
 ```{r}
 model2$coefficients
 ```
 
-In addition, all the variance inflation factors are less than 4 as follow, which doesn't indicate the exisitence of collinearity. 
+In addition, all the variance inflation factors are less than 4 as follows, which doesn't indicate the existence of collinearity. 
 
 ```{r}
 vif(model2)
 ```
 
 #### iv.Homoskedastic Errors
-To evaluate the homoskedastic errors assumption, the square root of the residuals is plotted against the fitted values of the model 2 (scale-location plot). Although, the curve is not perfect flat smooth, there is no obvious variance of the errors either. For reference, the data points marked in the plot represent Florida(10), New York (33) and North Dakota (35).
+To evaluate the homoskedastic errors assumption, the square root of the residuals is plotted against the fitted values of model 2 (scale-location plot). Although, the curve is not perfectly flat, there is no obvious variance of the errors either. For reference, the data points marked in the plot represent Florida (10), New York (33) and North Dakota (35).
 
 ```{r, echo=FALSE}
 plot(model2, which=3)
 ```
 
-Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity. The test result shows it fails to reject the null hypotheis, which means there is no evidence for heteroskedasticity. Overall, the assumption of homoskedastic errors is satisfied for model 2. 
+Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity. The test result shows it fails to reject the null hypothesis, which means there is no evidence for heteroskedasticity. Overall, the assumption of homoskedastic errors is satisfied for model 2. 
 
 ```{r, echo=FALSE}
 bptest(model2)
 ```
 
-#### v.Normally Distributed Errors
-To access the assumption of normality of error distribution, both the histogram and the qqplot of the residuals is shown as follow.
+#### v. Normally Distributed Errors
+To access the assumption of normality of error distribution, both the histogram and the Q-Q plot of the residuals is shown as follow.
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 plot_one <- df %>% 
