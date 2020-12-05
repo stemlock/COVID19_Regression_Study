@@ -478,7 +478,7 @@ histogram_of_pdensity
 
 ### Model 3 Regression
 
-Next, the regression model for model 3 is based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor considering nature of spread in disease. 
+Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor related to the spread of disease. 
 
 The regression coefficient shows that Mask_public_bool variable is highly significant. And the result suggests that public mask mandate policy has positive effect in bringing the case number down. In detail, the COVID-19 case rate can be reduced by 945 out of every 100k people if the state enforces public mask mandate keeping all other variables the same. 
 
