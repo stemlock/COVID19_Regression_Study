@@ -57,7 +57,7 @@ The tertiary and final phase of investigation includes a variable that measures 
 
 Additionally, the final phase of investigation continues to expand on the examination of state-level population demographics via the population density variable (defined as the population density in square miles, population/square miles). A key factor to the spread of COVID-19 is the idea of social distancing, where the virus is considered to be more likely to spread when people are close in proximity. Thus, population density is measured as a conduit to indicate the level of proximity within each state and will operationalize the concept of social distancing.
 
-## Assumptions
+## 1-1. Assumptions
 
 Prior to the analysis, it is important to identify a set of assumptions that have been made throughout the report and to assess the appropriateness of the data. Although there may be other considerations against the appropriateness of the data, the following highlights three particular arguments that must be taken into account when interpreting the results of the analysis.
 
@@ -74,8 +74,6 @@ The primary variable of interest will be the total COVID-19 case rate per 100,00
 The covariates that will be examined in building the models fit into two broad categories. The first category is demographic information on the state, namely percentage population distribution of seniors, the unemployment rate, the rate of people living in poverty, and the population density. The second general group is that of policy decisions taken by the state, specifically a mask mandate. Problematic covariates would include any of the other direct measures of COVID-19 severity in the state, namely total infection rate not on a per capita basis and COVID-19 death rates. It can be assumed that these variables would be collinear with the primary variable of interest since COVID-19 case rate is simply a linear transformation of total cases not adjusted for population, and death rate is derived from case rate.
 
 As mentioned in the introduction, the modeling goal for the COVID-19 case rate will be one of description. A model of causation may follow this research if potential causal relationships are examined and incorporated into the model's structure. This may later be expanded to predict the COVID-19 case rate in the past seven days in order for a state to use it to potentially judge what effect a mask policy could have.
-  
-## Model Variables
 
 The three models aim to investigate the relationship between the COVID-19 case rate, state population demographics, and a mask mandates. COVID-19 case rate per 100,000 is chosen as the key dependent variable to represent the proliferation of the COVID-19 pandemic in each state. The population percentage of seniors is chosen as the key independent variable as a proxy for susceptibility by innate state population make-up. The variables of poverty percentage, unemployment percentage, mask mandate policy, and population density per square miles are chosen as candidate covariates to further explore the aforementioned potential relationship.
 
@@ -91,7 +89,9 @@ df <-df %>%
   )
 ```
 
-## Model 1
+## 2-1. Model 1
+
+### 2-1-1. Model 1 Exploratory Data Analysis
 
 For the first model, the relationship between the COVID-19 case rate per 100,000 and the population percentage distribution of seniors was analyzed. 
 
@@ -138,7 +138,7 @@ df %>%
 
 From the above plot, there is noticeable variation in the smoothed blue line. However, it can be posited that there is a inverse relationship between the variables given the roughly linear relationship in the overall downward trend in the line. 
 
-### Model 1 Regression
+### 2-1-2. Model 1 Regression
 
 In order to test the relationship between the variables, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables. 
 
@@ -161,7 +161,7 @@ coeftest(model1)
 
 As can be seen from the above output, the variable for senior percentage is shown to be significant within the model specification with a p-value of 0.023. Furthermore, The coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior percentage and the case rate. In practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
 
-### Model 1 Limitations
+### 2-1-3. Model 1 Limitations
 
 #### i. IID Sampling 
 
@@ -198,19 +198,23 @@ From the above plot, the variance in residuals can be seen to be roughly constan
 
 #### v. Normally Distributed Errors
 
-The final CLM assumption examined for model 1 is the assumption of normality of errors. This is a necessary assumption to ascertain that the errors used in the regression are drawn from a normal distribution, so that they can be accepted when used to calculate the significance levels. Both a QQ plot and histogram of the distribution of the residuals is plotted to observe the normality.
+The final CLM assumption examined for model 1 is the assumption of normality of errors. This is a necessary assumption to ascertain that the errors used in the regression are drawn from a normal distribution, so that they can be accepted when used to calculate the significance levels. Both a Q-Q plot and histogram of the distribution of the residuals is plotted to observe the normality.
 
 ```{r, message = FALSE}
-# Create a QQ plot for the model 1 residuals
-plot(model1, which=2)
-
 # Create a histogram of the distribution of the model 1 residuals
-df %>%
+plot_one <- df %>%
   ggplot(aes(x = resid(model1))) +
   stat_bin() +
   geom_histogram(fill = 'skyblue', color = 'grey30', bins=30) +
   labs(title =  "Histogram of the Model 1 Residuals", 
        x = "Model 1 residuals", y = 'Count')
+
+# Create a QQ plot for the model 1 residuals
+plot_two <- df %>% 
+  ggplot(aes(sample = resid(model1))) + 
+  stat_qq() + stat_qq_line()
+
+plot_one / plot_two
 ```
 
 From the QQ plot, normality in the residuals can be detected given the proximity of the points to the normal line. Additionally, although the shape is a little harder to observe, the histogram of the residuals also gives a fairly normal distribution.
@@ -224,7 +228,9 @@ In addition to the CLM assumptions, the Cook's distance is also examined by a pl
 plot(model1, which=5)
 ```
 
-## Model 2
+## 2-2. Model 2
+
+### 2-2-1. Model 2 Exploratory Data Analysis
 
 Based on the work of model 1, two extra state demographic features regarding poverty rate (percentage living under the federal poverty line in 2018) and unemployment rate (percentage of unemployed in 2018) would be included in the analysis of model 2. In addition, both newly-introduced percentage variables would be transformed into rates per 100,000 to align with the case rate variable.
 
@@ -253,7 +259,7 @@ ggplot(data = df,
 ```
 According to the histogram above, the distribution of unemployed number per 100,000 is fairly normal distribution. Overall, it is not highly skewed or heavily tailed. Therefore, there is no further transformation needed for this variable in the following analysis process for both model 2 and model 3.
 
-### Model 2 Regression
+### 2-2-2. Model 2 Regression
 
 
 Compared to model 1, the relationship investigated here is about variables space with higher dimensions. It would be challenging to observe notable variation from variables distribution plots as below. 
@@ -311,12 +317,13 @@ In addition, the coefficient of the poverty_per_100k (0.231750) indicates that f
 
 Finally, the coefficient of the unemployed_per_100k is statistically significant and negative (-0.486191), which implies that for every one thousand additional unemployed, there is a decrease of 486 COVID-19 case per 100,000, holding other demographic features as constant. Although the unemployment leads to less medical insurance coverage and impact on their income, the unemployed people may have more flexibility to obey stay-at-home orders. In addition, there is less exposure probability when there is no commuting or in-place working required for the unemployed. 
 
-### Model 2 Limitations
+### 2-2-3. Model 2 Limitations
 
 #### i. IID Sampling 
-(This will be discussed in the following section - 3. Limitations of the Models)
 
-#### ii.Linear Conditional Expectation
+The first assumption of IID is not detailed within this section given that it is evaluated more generally for all three models within section 3. 
+
+#### ii. Linear Conditional Expectation
 To assess the linear conditional expectation assumption in higher-dimensional space, the plots of predicted versus residuals of the model 2 is investigated as follows.  
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
@@ -333,7 +340,7 @@ df %>%
 
 Overall, the residuals maintain around zero across the predicted range. There is no assumption violation phenomenon that can be observed here. 
 
-#### iii.No Perfect Collinearity
+#### iii. No Perfect Collinearity
 
 Since there are multiple covariates included in this model compared to the model 1, there is more concern about the no perfect collinearity assumption here. First, the list of variable coefficients shows that no variables were dropped, which means there is no perfect collinearity detected by the R function. 
 
@@ -347,7 +354,7 @@ In addition, all the variance inflation factors are less than 4 as follows, whic
 vif(model2)
 ```
 
-#### iv.Homoskedastic Errors
+#### iv. Homoskedastic Errors
 To evaluate the homoskedastic errors assumption, the square root of the residuals is plotted against the fitted values of model 2 (scale-location plot). Although, the curve is not perfectly flat, there is no obvious variance of the errors either. For reference, the data points marked in the plot represent Florida (10), New York (33) and North Dakota (35).
 
 ```{r, echo=FALSE}
@@ -376,19 +383,21 @@ plot_two <- df %>%
 
 plot_one / plot_two
 ```
-Limited by the sample size, it is hard to observe a perfect normal distribution from the histogram. However, the qqplot implies no deviation from normality. Overall, the normally distributed errors assumption is satisfied for model 2. 
+Limited by the sample size, it is hard to observe a perfect normal distribution from the histogram. However, the Q-Q plot implies no deviation from normality. Overall, the normally distributed errors assumption is satisfied for model 2. 
 
-### Cook Distance 
+#### vi. Influence of Data Points
 
-Additionally, cook distance is used to estimate the influence of each single data point. 
+Additionally, Cook's distance is used to estimate the influence of each single data point. 
 
 ```{r, echo =FALSE}
 plot(model2, which = 5)
 ```
-No obvious outlier could be detected here. For reference, the marked data points are Florida(10), Maine(20), and North Dakota(30).
 
+No obvious outliers could be detected here. For reference, the marked data points are Florida (10), Maine (20), and North Dakota (30).
 
-## Model 3 
+## 2-3. Model 3
+
+### 2-3-1. Model 3 Exploratory Data Analysis
 
 For Model 3, policy related variables will be introduced for the analytics. Policy variable "Mandate face mask use by all individuals in public spaces" (renamed as mask_public) is selected as control variable to predict the case rate. Given it has been proved that mask is effective in preventing the transmission of disease, it is expected that the mask policy mandate in public would have an effect in reducing the case rate. 
 
@@ -475,7 +484,7 @@ histogram_of_pdensity <- df %>%
 histogram_of_pdensity
 ```
 
-### Model 3 Regression
+### 2-3-2. Model 3 Regression
 
 Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor related to the spread of disease. 
 
@@ -496,15 +505,13 @@ coeftest(model3)
 
 ```
 
+### 2-3-3. Model 3 Limitations
 
-### CLM Assumptions Validation for Model 3:
+#### i. I.I.D Assumption
 
-#### I.I.D Assumption
+The first assumption of IID is not detailed within this section given that it is evaluated more generally for all three models within section 3. 
 
-
-( Discussed in the common section)
-
-#### Zero Conditional Mean
+#### ii. Linear Conditional Expectation
 
 
 The Residual vs Fitted chat shows a almost flat line that is close to zero, with the tails a bit skewed. There is no strong evidence that there are unincoorperated linear relationship that we are not capturing from the control variables.
@@ -513,16 +520,15 @@ The Residual vs Fitted chat shows a almost flat line that is close to zero, with
 plot(model3, which=1)
 ```
 
-#### Normality of Errors
+#### iii. No Perfect Collinearity
 
-
-From the Normal Q-Q plot below, the points generally stay close to the normal line, with the tails exhibit certain degree of skew. There is no significant evidence of concerning normality in the errros.
+Based on the Variance Inflation Factors check, all the variables have variance-inflation factors less than 4. As a result, there's no strong evidence of collinearity concern within the model. 
 ```{r}
-plot(model3, which=2)
+
+vif(model3)>4
 ```
 
-#### Homoskedasticity
-
+#### iv. Homoskedastic Errors
 
 According to the plot of Homoskedasticity, the standardized residual falls into a reasonable range and the line looks smooth without concerning skews. There is no significant evidence that the model violates homoskedasticity assumptions.
 ```{r}
@@ -531,19 +537,29 @@ plot(model3, which=3)
 
 ```
 
-#### Collinearity
+#### v. Normally Distributed Errors
 
+To access the assumption of normality of error distribution, both the histogram and the Q-Q plot of the residuals is shown as follow.
 
-Based on the Variance Inflation Factors check, all the variables have variance-inflation factors less than 4. As a result, there's no strong evidence of collinearity concern within the model. 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+plot_one <- df %>% 
+  ggplot(aes(x = resid(model3))) +
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins=30) +
+  labs(title =  "Histogram of the Model 3 Residuals", 
+       x = "Model 3 residuals", y = 'Count')
+  
+plot_two <- df %>% 
+  ggplot(aes(sample = resid(model3))) + 
+  stat_qq() + stat_qq_line()
 
-vif(model3)>4
+plot_one / plot_two
 ```
 
-#### Cook's Distance
+There is a fairly normal distribution that can be seen from the histogram above. From the Q-Q plot, the points generally stay close to the normal line, with the tails exhibiting a certain degree of skew. However, in general, it implies no deviation from normality. Overall, the normally distributed errors assumption is satisfied for model 3. 
 
+#### vi. Influence of Data Points
 
-From the Cook's plot, there is no strong evidence of concerning outliers.
+From the Cook's distance plot, there is no strong evidence of concerning outliers. For reference, the marked data points are D.C. (9), New Hampshire (30), and North Dakota (35).
 
 ```{r}
 
@@ -551,16 +567,15 @@ plot(model3, which=5)
 ```
 
 
+# 3. Limitations of the Models
 
-## 3. Limitations of the Models
+The most general requirement for all the linear models is that data points be independent and identically distributed (IID) which they are built off of. While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurrence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. In addition, all states are involved in the same market economy system of the country to varying degrees, even though there are economic performance divisions across the states. Likewise, certain regions of the country may also have similar demographics due to a shared history across general geographic regions. While this is acknowledged to occur, the effect is likely minor compared to the policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
 
-The most general requirement for all the linear models is that data points be independent and identically distributed (IID) which they are built off of. While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. In addition, all states are involved in the same market economy system of the country to varying degrees, even though there are economic performance divisions across the states. Likewise, certain regions of the country may also have similar demographics due to a shared history across general geographic regions. While this is acknowledged to occur, the effect is likely minor compared to the policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
-
-In examining the results of various diagnostics across different models, generally the CLM assumptions are best met with the second model. In the first model, deviations away from certains assumptions are the strongest. This is seen mostly with regards to the linear conditonal expectation assumption, where the residuals against the fitted values have a noticeable inverted "V" shape as opposed to being constant around zero. In the second model, the same diagnostic shows that the assumption is better met. 
+In examining the results of various diagnostics across different models, generally the CLM assumptions are best met with the second model. In the first model, deviations away from certains assumptions are the strongest. This is seen mostly with regards to the linear conditional expectation assumption, where the residuals against the fitted values have a noticeable inverted "V" shape as opposed to being constant around zero. In the second model, the same diagnostic shows that the assumption is better met. 
 
 However, when adding more variables in the third model, other assumptions begin to be less well met. For example, the normality of the error term in the model is less well fit than it was in the earlier models. It can be seen in the QQ plot for the model how at fitted values towards the edges of the model's range, the is the greatest deviation away from normality. This assumption is generally less important than that of the linear conditional expectation, however, where the latter is a fundamental part of CLM. 
 
-## 4. Regression Table
+# 4. Regression Table
 
 With the analysis for the selected variables, the three corresponding models, and the respective diagnostics of the CLM assumptions complete, the models can then be included for comparison in a regression table. Model 1, model 2, and model 3 are included in the regression table below,.
 
@@ -575,51 +590,51 @@ stargazer(model1, model2, model3, type = "text",
           title = "Table 1: The effect of population demographics and mask policy on COVID-19 case rate")
 ```
 
-Initially addressing the progression of the models at a macro level, the regression table highlights the fact that as the models build upon one another, they seem to get better at explaining the relationship between the input and output variables. Between model 1, 2, and 3, both the R2 and stricter adjusted R2 value increases as variables are added. The R2 value reflects the amount of variation that can be explained in the model on a 0-1 scale, while the adjusted R2 value does the same but also takes into account the number of variables measured (as can be seen in the decreasing degrees of freedom, df). The adjusted R2 value jumps from 0.082 initially in model 1 to a value of 0.267 in model 2, which is more than a 200% increase. The value again increases, albeit by a smaller amount, between model 2 and a value of 0.376 in model 3, which represents a 40% jump. When the R2 value is not adjusted, this value increases to 0.439 for model 3. Although not extraordinarily high given the scale, the value shows that that model 3 still explains much of the variance and is a relatively good predictor of the data, especially when compared to model 1. An additional value that reflects this improvement is the fact that the F-statistic is significant for all three models. The F-statistic is used to test whether or not to use the full model (inclusive of all input variables) or a reduced one with fewer variables. Given that the null hypothesis for this test is that the reduced model should be over the full model, this can be safely rejected in favor of the full model. 
+Initially addressing the progression of the models at a macro level, the regression table highlights the fact that as the models build upon one another, they seem to get better at explaining the relationship between the input and output variables. Between model 1, 2, and 3, both the R2 and stricter adjusted R2 value increases as variables are added. The R2 value reflects the amount of variation that can be explained in the model on a 0-1 scale, while the adjusted R2 value does the same but also takes into account the number of variables measured (as can be seen in the decreasing degrees of freedom, df). The adjusted R2 value jumps from 0.082 initially in model 1 to a value of 0.267 in model 2, which is more than a 200% increase. The value again increases, albeit by a smaller amount, between model 2 and a value of 0.376 in model 3, which represents a 40% jump. When the R2 value is not adjusted, this value increases to 0.439 for model 3. Although not extraordinarily high given the scale, the value shows that that model 3 still explains much of the variance and is a relatively good predictor of the data, especially when compared to model 1. An additional value that reflects this improvement is the fact that the F-statistic is significant for all three models. The F-statistic is used to test whether or not to use the full model (inclusive of all input variables) or a reduced one with fewer variables. Given that the null hypothesis for this test is that the reduced model should be over the full model, this can be safely rejected in favor of the full model. Additionally, it can be seen that the standard errors for the significant variables are relatively small and are consistent across the models.
 
 When diving into each model more closely and investigating the individual variable coefficients themselves, there is further evidence for robustness in the results across the models.
 
-In model 1, the coefficient of -0.174 for the senior rate per 100,000 is significant with a p-value of 0.0234 (per the regression results from the Model 1 section). When the covariate variables of unemployment rate and poverty rate are added in to model 2, the coefficient for senior rate adjusts to a greater magnitude of -0.231 while the p-value appreciably decreases to a value of 0.0015 (per the regression results from the Model 2 section). This explains that not only has the magnitude of effect of the senior rate on case rate increased, but that this increased effect is also more statistically significant. In addition, the coefficients of the covariate variables themselves are also highly significant with p-values of 0.0005 and 0.0059 for poverty rate and unemployment rate respectively. The magnitude of the effect of poverty rate is almost equivalent to that of the senior rate, with a single increase in poverty rate per 100,000 equivalent to 0.232 per 100,000 for case rate, while the unemployment rate has stronger negative coefficient of -0.486 per 100,000 (roughly twice the magnitude of the other two variables).
+In model 1, the coefficient of -0.174 for the senior rate is significant with a p-value of 0.0234 (per the regression results from the Model 1 section). When the covariate variables of unemployment rate and poverty rate are added in to model 2, the coefficient for senior rate adjusts to a greater magnitude of -0.231 while the p-value appreciably decreases to a value of 0.0015 (per the regression results from the Model 2 section). This explains that not only has the magnitude of effect of the senior rate on case rate increased, but that this increased effect is also more statistically significant. In addition, the coefficients of the covariate variables themselves are also highly significant with p-values of 0.0005 and 0.0059 for poverty rate and unemployment rate respectively. The magnitude of the effect of poverty rate is almost equivalent to that of the senior rate, with a coefficient of 0.232, while the unemployment rate has stronger negative coefficient of -0.486 (roughly twice the magnitude of the other two variables).
 
-Moving onto model 3, the magnitude of the coefficient for senior rate increases once again to a value of -0.242 while the statistical significance increases with a decreased p-value of 0.0004 (per the regression results from the Model 3 section). As highlighted before, the more complex model does a better job of predicting the effect of the senior rate variable. Conversely, the p-values for the poverty rate and unemployment rate coefficients become less significant, as they increase to 0.002 and 0.049 respectively. There are also detectable changes in the coefficient values, as the magnitude for both decreases to 0.197 and -0.364 respectively. The changes in the p-values are likely a direct result of the added variables of mask policy and the logarithmic transform of population density, where these variables introduce some additional variance in the model 2 covariates. Notably, the coefficient for the mask policy covariate is significant with a p-value of 0.0027 and has by far the greatest effect on the outcome variable with a coefficient of -945.6. The populuation density covariate is not significant with a p-value of 0.3369.
+Moving onto model 3, the magnitude of the coefficient for senior rate increases once again to a value of -0.242 while the statistical significance increases with a decreased p-value of 0.0004 (per the regression results from the Model 3 section). As highlighted before, the more complex model does a better job of predicting the effect of the senior rate variable. Conversely, the p-values for the poverty rate and unemployment rate coefficients become less significant, as they increase to 0.002 and 0.049 respectively. There are also detectable changes in the coefficient values, as the magnitude for both decreases to 0.197 and -0.364 respectively. The changes in the p-values are likely a direct result of the added variables of mask policy and the logarithmic transform of population density, where these variables introduce some additional variance in the model 2 covariates. Notably, the coefficient for the mask policy covariate is significant with a p-value of 0.0027 and has by far the greatest effect on the outcome variable with a coefficient of -945.6. The population density covariate is not significant with a p-value of 0.3369.
 
-In terms of practical significance, there is great discrepancy between the effect of the mask policy variable compared to the other three significant features. With a coefficient of -945.6, this means that given the binary mask policy variable, when a mask policy is implemented (value of 1), there is an decrease in case rate of roughly 945 per 100,000 compared to when the policy is not in place. The next largest effect is from the unemployment rate variable, where in the final model, the coefficient of -0.364 translates as a decrease of 0.364 cases per 100,000 for every additional increase of 1 in unemployment rate per 100,00. More intuitively, it can be said that there is a decrease of roughly 1 case per 100,000 with every 3 additional people unemployed per 100,000. This effect is roughly 2,600 times smaller than the effect of implementing a mask policy. Similarly, the effects of both poverty rate and senior rate are nominal. For every 5 additional people per 100,000 who are below the poverty line, there is roughly 1 additional case per 100,000, and for every 4 additional seniors per 100,000 within the state population, there is roughly 1 fewer case per 100,000. In comparison with likewise relatively minimal effect of the unemployment rate, these absolute effects on case rate are approximately one-third (1/3) and one-half (1/2) smaller respectively.
+In terms of practical significance, there is great discrepancy between the effect of the mask policy variable compared to the other three significant features. With a coefficient of -945.6, this means that given the binary mask policy variable, when a mask policy is implemented (value of 1), there is an decrease in case rate of roughly 945 per 100,000 compared to when the policy is not in place. The next largest effect is from the unemployment rate variable, where in the final model, the coefficient of -0.364 translates to a decrease of roughly 1 case per 100,000 with every 3 additional people unemployed per 100,000. Similarly, the effects of both poverty rate and senior rate are nominal. For every 5 additional people per 100,000 who are below the poverty line, there is roughly 1 additional case per 100,000, and for every 4 additional seniors per 100,000 within the state population, there is roughly 1 fewer case per 100,000.
 
-## 5. Omitted Variables
+# 5. Omitted Variables
 
 Omitted variables from the model may affect both the internal specifications of included variables as well as the general applicability of the model to explain the output variable. For this analysis, the omitted variables mentioned are hypothetical. Therefore, without data to include in an follow up analysis with the omitted variable, only the direction of the bias may be estimated rather than the size effect as well.
 
-### 5-1: Urban vs Rural Population Ratio
+## 5-1. Urban vs Rural Population Ratio
 
-One of the variables that was hypothesized as being potentially influential is a ratio of a state's urban to rural population. Currently, the dataset contains population information as averaged across each state as a whole. While population density is potentially useful, it was found to not be significant in the models. This may be due to states which have large urban centers, where population density woukd be high, losing their impact due to also containing large areas of land that is sparsely populated. One example of this would be New York, which contains several of the most densely populated counties in the country, but also large rural areas. 
+One of the variables that was hypothesized as being potentially influential is a ratio of a state's urban to rural population. Currently, the dataset contains population information as averaged across each state as a whole. While population density is potentially useful, it was found to not be significant in the models. This may be due to states which have large urban centers, where population density would be high, losing their impact due to also containing large areas of land that is sparsely populated. One example of this would be New York, which contains several of the most densely populated counties in the country, but also large rural areas. 
 
 An urban to rural ratio would be explanatory of the population density variable as a whole, where a higher urban to rural ratio would result in a higher statewide population density generally. With a greater fraction of urban residents, people would also be less likely to be able to social distance as effectively, increasing the per capita case rate. Therefore, the coefficient for population density in the original model would be larger and more positive than a model where this ratio is included, resulting in a bias that is positive and away from zero. Assuming population density as an effective proxy for an urban to rural ratio variable, however, the original effect described in the models can be assumed to be real. 
 
-### 5-2: Median Income
+## 5-2. Median Income
 
 Knowledge of the median income for a state would give an indication of the relative job status for a working person in that state. This would be important for the case rate to understand about how many people work in low paying jobs that are more frequently in close contact with others (such as the service industry, gig industry, etc.). Higher median income may imply that more workers are able to function remotely with greater social distancing. A higher median income would then be negatively related to the COVID case rate. It would also be explanatory in a way that makes the poverty percentage variable less impactful, where either of these variables may be considered as proxies for one another. Because inclusion of the median income variable would led to a lower magnitude poverty percentage variable, and that the coefficient of the poverty percentage variable is positive, this would cause a positive omitted variable bias away from zero. Similar to the first omitted variable, however, poverty percentage may also be assumed to proxy median income in that they both describe the economic state of a location and what that implies for its population. Because of this, the original effect in the model can be assumed to be real.
 
-### 5-3: Gender Ratio
+## 5-3. Gender Ratio
 
-The ratio of gender between women and men may impact the COVID case rate in that men are more suscepitble to viral infections and generally have lower life expectancies from lifestyle differences. Greater susceptibility may relate to the case rate in that men may more often become infected when exposed to COVID under similar circumstances as a women. Their shorter life expentancy may also impact the case rate in that more COVID cases may result in greater or more serious symptoms, with less occurances of an infection that is asymptomatic or goes undetected. In either of these cases, a higher fraction of men among the population would lead to an overall higher COVID case rate. 
+The ratio of gender between women and men may impact the COVID case rate in that men are more susceptible to viral infections and generally have lower life expectancy from lifestyle differences. Greater susceptibility may relate to the case rate in that men may more often become infected when exposed to COVID under similar circumstances as a women. Their shorter life expectancy may also impact the case rate in that more COVID cases may result in greater or more serious symptoms, with less occurrences of an infection that is asymptomatic or goes undetected. In either of these cases, a higher fraction of men among the population would lead to an overall higher COVID case rate. 
 
 This variable could also be partially explained by the senior percentage variable, because of the increase of women in gender ratios generally as people get older. Therefore, introducing the gender ratio variable into the model would lower the value of the coefficient to the senior percentage variable to be less negative. This would be a negative omitted variable bias towards zero. With a negative bias, and no existing variable in the dataset that would serve as a good proxy for the gender ratio, the effects in the original model can be assumed to be real.
 
 However, the magnitude of this change is likely to not be large due to other causal mechanisms between seniors and COVID case rate. While men may more frequently present COVID symptoms, older people in general are also more susceptible to the virus due to their physical condition and would also present more symptoms than non seniors. When comparing the two, generally seniors are considered as more at-risk of COVID complications than men across all ages, and so the senior percentage would still have a greater impact on the overall COVID case rate than the gender ratio. 
 
-### 5-4: Mask Use Among Population
+## 5-4. Mask Use Among Population
 
 Currently, the model incorporates state policy around masks with a variable indicating whether or not a state mandated a mask policy for the general public. While this is useful for describing an action a state government can make and its affect on the case rate, it doesn't full capture whether how much the population actively wears a mask to drive down transmission. Instead, a variable which would indicate the fraction of the population actively wearing a mask would better capture the mechanism of how the virus is transmitted among people. 
 
 A variable capturing the mask use among the population would likely reduce the explanatory power of the state mask mandate variable to be less negative. This would cause the bias of the omitted variable to be negative and towards from zero. It is also reasonable to assume that state mask policy may effectively enough proxy for the mask use among the population, in which case the original effect in the model may be assumed to be real.
 
-### 5-5: GDP Percentage of Tourism
+## 5-5. GDP Percentage of Tourism
 
 The economic standing of a state not only affects the individual households of its population, but also includes how it interacts with other states and how its peoples' lives might have been economically changed by the pandemic. One way that a state may increase its number of COVID cases is both from tourists or others visiting during the pandemic and bringing disease, but also if its own population must work in close contact with others serving them in the tourism industry. In addition, if certain key industries to a state, such as tourism, layed off many workers, they would likely have to take lower paying close contact jobs such as in the service or gig economy in order to continue having a livelihood. This would further lead to a higher COVID case rate 
 
 These effects may be included with a variable that demonstrates how much of a state's GDP is from tourism. It would be related to other economic indicator variables, such as the percent of the population living in poverty. While poverty is a broader phenomena, the number of people in poverty in the pandemic could be potentially higher due to negative growth of the tourism industry. Therefore, it is expected that states with a greater focus on tourism may also have more people in poverty in the pandemic. This would take some of the explanatory power of the poverty variable away, resulting in its model coefficient becoming less positive. This would result in a positive omitted variable bias away from zero. Without a clear proxy in the dataset, and with the nature of this variable in touching on the IID assumption between interaction among states, it should be further investigated to understand how much of the original model may be an effect of omitted variable bias. 
 
-## 6. Conclusion
+# 6. Conclusion
 
 The goal of the analysis was to address the research question to examine the relationship between both the distribution of population demographics and mask-related policy of a state and the COVID-19 case rate within that states. In order to address this question, the analysis was broken up into three phases of investigation with corresponding linear models:
 - Phase 1: To investigate the direct relationship between COVID-19 case rate and the population distribution of seniors within a state
@@ -628,6 +643,8 @@ The goal of the analysis was to address the research question to examine the rel
 
 From the three phases of investigation, there was strong evidence in the data to suggest that senior rate, unemployment rate, and mask policy are all statistically significant in relation to case rate and have a negative relationship with case rate, while poverty rate has a positive relationship. The data for population density was not statistically significant enough to suggest a relationship. Out of the four significant variables, the greatest effect was from the mask policy variable, followed by the unemployment rate, and then similar absolute effect sizes from the senior rate and povery rate.
 
-Starting with the variable with the greatest effect size, it can be seen that the implementation of a mask policy in a state leads to a decrease of 945 cases per 100,000. Given that research from leading health organizations shows that the wearing of masks helps to decrease the chance of the transmission of COVID-19, it could be suggested that a mask policy is effective in increasing the adoption of wearing masks among the state population. Next, it can be seen that there is a decrease of roughly 1 case per 100,000 with every 3 additional people unemployed per 100,000. This suggests that as unemployment increases, the case rate decreases, which could be a result of the fact that those who are unemployed may be less mobile as they are not commuting into work, lowering the likelihood of contracting the virus. Additionally, at the time that this data was collected, the Coronavirus Aid, Relief, and Economic Security (CARES) Act was still supporting the unemployed with relief payments so there was less urgency to be out looking for work. Following unemployment, when examining the poverty variable there is actually an increase of roughly 1 case per 100,000 for every 5 additional people per 100,000 living under the federal poverty line. Although there is some intuition behind the unemployment and poverty rates having similar effects on case rate, it can be seen from the test of collinearity in the Model 2 section that these two variables are not explaining the same effects. This difference is likely due to the fact that those living below the poverty line have less access to suitable living conditions and sanitary goods that help to alleviate the possibility of COVID-19 infection, while those who were recently employed up until the pandemic hit may not be in the same economical situation. Finally, the effect of the senior rate is negative, with an additional 4 seniors per 100,000 translating to roughly 1 fewer case per 100,000. As touched upon in the introduction, this could be largely down to the fact that it is widely broadcasted that seniors fall within the high risk category in terms of having severe complications from COVID-19, and therefore they are more diligent in the precautions they take against contracting the virus.
+Starting with the variable with the greatest effect size, it can be seen that the implementation of a mask policy in a state leads to a decrease of 945 cases per 100,000. Given that research from leading health organizations shows that the wearing of masks helps to decrease the chance of the transmission of COVID-19, it could be suggested that a mask policy is effective in increasing the adoption of wearing masks among the state population. Next, it can be seen that there is a decrease of roughly 1 case per 100,000 with every 3 additional people unemployed per 100,000. This suggests that as unemployment increases, the case rate decreases, which could be a result of the fact that those who are unemployed may be less mobile as they are not commuting into work, lowering the likelihood of contracting the virus. Additionally, at the time that this data was collected, the Coronavirus Aid, Relief, and Economic Security (CARES) Act was still supporting the unemployed with relief payments so there was less urgency to be out looking for work. Following unemployment, when examining the poverty variable there is actually an increase of roughly 1 case per 100,000 for every 5 additional people per 100,000 living under the federal poverty line. Although there is some intuition behind the unemployment and poverty rates having similar effects on case rate, it can be seen from the test of collinearity in the Model 2 section that these two variables are not explaining the same effects. This difference is likely due to the fact that those living below the poverty line have less access to suitable living conditions and sanitary goods that help to alleviate the possibility of COVID-19 infection. As a caveat, it should be noted that these the poverty and unemployment figures are from a 2018 survey, so it does not reflect the full picture of the state demographics at the time of when the COVID-19 related data was captured. Finally, the effect of the senior rate is negative, with an additional 4 seniors per 100,000 translating to roughly 1 fewer case per 100,000. As touched upon in the introduction, this could be largely down to the fact that it is widely broadcasted that seniors fall within the high risk category in terms of having severe complications from COVID-19, and therefore they are more diligent in the precautions they take against contracting the virus.
 
-In conclusion, we see that although the population demographics had varying effects on the COVID-19 case rate, the greatest effect was seen from the mask policy. Going back to our original question, it can be suggested within the data that the effect of a mask-related policy is much larger than that of population demographics. Therefore, it seems that the COVID-19 case rate at the state-level is much more dependent on masks, and that ultimately, there are effective policy and control measures that can be taken by state governments that have a greater contribution towards combating it's spread relative to factors that cannot be controlled, such as population demographics. However, it should be noted that these insights are qualified by the assumptions and limitations laid out throughout the report, namely that there are potential issues in meeting the IID assumption and that there is explanatory information that is lost from both the variables investigated as well as the those that were not included in the dataset.
+In conclusion, we see that although the population demographics had varying effects on the COVID-19 case rate, the greatest effect was seen from the mask policy. Going back to our original question, it can be suggested within the data that the effect of a mask-related policy is something that should not be neglected in comparison to the population demographics. Therefore, it seems that the COVID-19 case rate at the state-level is dependent on masks, and that ultimately, there are effective policy and control measures that can be taken by state governments that have some contribution towards combating it's spread relative to factors that cannot be controlled. However, it should be noted that these insights are qualified by the assumptions and limitations laid out throughout the report, namely that there are potential issues in meeting the IID assumption and that there is explanatory information that is lost from both the variables investigated as well as the those that were not included in the dataset.
+
+# References
