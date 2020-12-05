@@ -71,7 +71,7 @@ The research question aims to measure the COVID-19 case rate per 100,000 residen
 
 The first and primary phase of investigation involves how the COVID-19 case rate is affected by key population demographics. For this, the key variables are COVID-19 case rate per 100,000 residents and the percentage population distribution of seniors (defined as 65 years old or older) within a state. The case rate per 100,000 was selected as the key output/dependent variable as it provides a standardized measure of the spread of COVID-19 across the states, taking into account the absolute population of the states. The senior percentage was selected as the key input/independent variable given that guidance had been released by the Centers for Disease Control and Prevention (CDC) that seniors belong to the age category for those at higher risk of COVID-19, and thus are a well studied and documented group. This is likely due to the both the fact that seniors in this age group are more likely or had greater access to be tested given their categorization and the fact that they would have a greater likelihood of exhibiting detectable COVID-19 related symptoms that would prompt them to get tested. An additional rationale for measuring the senior percentage is that they may also be more likely to contract COVID-19 at lower viral loads, making them more susceptible to the virus. Conversely, this may result in seniors being more wary of the threat of COVID-19, and taking additional precautions to prevent infection relative to other age categories, such as limiting social interactions and taking more preventative measures in terms of hygiene. These key variables will provide an initial understanding of the relationship between the spread of the virus and population demographics. 
 
-Following this, in the second phase of investigation the analysis considers other variables of state-level population that are considered factors of suscesptibility, namely the rate of poverty (defined as the percent of individuals living under the federal poverty line in 2018) and the rate of unemployment (defined as the percent unemployment in 2018). Those living below the poverty line may have less access/are unable to afford to preventative controls such as sanitation products and masks that help prevent the spread of the virus, while those who are designated as unemployed may not have the flexibility of sheltering at home as well as access to the aforementioned preventative controls. Alternatively, the likelihood of reduced mobility for those living under the poverty line and/or who are unemployed may also play a role in the relationship with case rate. As mentioned, these variables operationalize population metrics that may lead to greater case rates, and are already standardized as rates to account for varying absolute populations across states.
+Following this, in the second phase of investigation the analysis considers other variables of state-level population that are considered factors of susceptibility, namely the rate of poverty (defined as the percent of individuals living under the federal poverty line in 2018) and the rate of unemployment (defined as the percent unemployment in 2018). Those living below the poverty line may have less access/are unable to afford to preventative controls such as sanitation products and masks that help prevent the spread of the virus, while those who are designated as unemployed may not have the flexibility of sheltering at home as well as access to the aforementioned preventative controls. Alternatively, the likelihood of reduced mobility for those living under the poverty line and/or who are unemployed may also play a role in the relationship with case rate. As mentioned, these variables operationalize population metrics that may lead to greater case rates, and are already standardized as rates to account for varying absolute populations across states.
 
 The tertiary and final phase of investigation includes a variable that measures the implementation of policy as a response to COVID-19, and to understand the added effect of this variable in conjunction with the first phase of investigation that is state population metrics. Specifically, there is a focus on a policy that mandates the wearing of masks within the state. Through this, the aim is to analyze whether the implementation of a mask-related policy will have an effect on case rate, as well as the degree of this effect relative to population metrics. To operationalize this policy and simplify the measurements, the models only consider whether or not this policy was implemented through transformed indicator variables (1 = implemented, 0 = not implemented). As a result, factors of when and for how long the policy was implemented will be lost. Although this loss of information may fail to capture the impact of length of time of a policy on case rate (the policy may take time to be adopted/show meaningful efficacy), as there is no time-series data for case rate included in the data set, it was adjudged to be incongruent with the analysis.
 
@@ -157,7 +157,11 @@ df %>%
   )
 ```
 
-From the above plot, there is noticeable variation in the smoothed blue line. However, it can be posited that there is a inverse relationship between the variables given the roughly linear relationship in the overall downward trend in the line. In order to test this, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables. 
+From the above plot, there is noticeable variation in the smoothed blue line. However, it can be posited that there is a inverse relationship between the variables given the roughly linear relationship in the overall downward trend in the line. 
+
+#### Model 1 Regression
+
+In order to test the relationship between the variables, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables. 
 
 $$
 case{\_}rate{\_}100k =\beta_0 + \beta_1 senior{\_}per{\_}100k
@@ -168,9 +172,40 @@ $$
 model1 <- lm(case_rate_100k ~ senior_per_100k , data = df)
 ```
 
-To improve the precision of the t-test of coefficients, classical standard errors can be used over robust standard errors to test the regression. To determine the applicability of using classical standard errors, in addition to the three Classical Linear Model (CLM) assumptions necessary for the robust standard errors, the CLM assumption for homoskedastic conditional errors should be evaluated. If this additional assumption is met, the robust standard errors can be replaced by the classical standard errors. The assumption of homoskedasticity is met if the data does not have large variance among the residuals. 
+To improve the precision of the t-test of coefficients, classical standard errors can be used over robust standard errors to test the regression. To determine the applicability of using classical standard errors, in addition to the three Classical Linear Model (CLM) assumptions necessary for the robust standard errors, the CLM assumption for homoskedastic conditional errors should be evaluated. If this additional assumption is met, the robust standard errors can be replaced by the classical standard errors. The assumption of homoskedasticity is met if the data does not have large variance among the residuals. The analysis for this assumption, as well as the other CLM assumptions, is conducted in the following subsection titled "Model 1 CLM Assumptions".
 
-To evaluate this assumption, the square root of the residuals (to remove any negative values) is plotted against the fitted values of the model. Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity.
+Below, the t-test of coefficients is run on the regression model above. 
+
+```{r}
+coeftest(model1)
+```
+
+As can be seen from the above output, the variable for senior percentage is shown to be significant within the model specification with a p-value of 0.023. Furthermore, The coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior percentage and the case rate. In practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
+
+#### Model 1 CLM Assumptions
+
+##### i. IID Sampling 
+
+The first assumption of IID is not detailed within this section given that it is evaluated more generally for all three models within section 3. 
+
+##### ii. Linear Conditional Expectation
+
+The second CLM assumption to be evaluated is that of a linear conditional expectation relationship within the data, so that the model is accurately estimating the relationship between the variables. To test for this, the residuals of model 1 are plotted against its fitted values.
+
+```{r}
+# Check for linearty in model 1
+plot(model1, which=1)
+```
+
+When examining the plot above for linearity in the conditional expectation, there is a noticeable slightly quadratic shape to the relationship of the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics. Additionally, there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity. 
+
+##### iii. No Perfect Collinearity
+
+There is no test conducted for the third CLM assumption of no perfect collinearity in model 1 given there is only one input variable.
+
+##### iv. Homoskedastic Errors
+
+To evaluate the fourth CLM assumption of homoskedastic errors, the square root of the residuals (to remove any negative values) is plotted against the fitted values of the model. Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity.
 
 ```{r}
 # Check the homoskedasticity of errors in model 1
@@ -182,24 +217,9 @@ bptest(model1)
 
 From the above plot, the variance in residuals can be seen to be roughly constant given the relative flatness of the plotted red line, thus meeting the assumption of homoskedastic conditional errors. This is supported by the p-value of 0.497 from the Breusch-Pagan test, meaning it fails to reject the null hypothesis that the conditional errors are not heteroskedastic. With this additional assumption met, the regression model is run using a t-test with classical standard errors. 
 
-```{r}
-coeftest(model1)
-```
+##### v. Normally Distributed Errors
 
-As can be seen from the above output, the variable for senior percentage is shown to be significant within the model specification with a p-value of 0.023. Furthermore, The coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior percentage and the case rate. In practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
-
-Next, the other CLM assumptions are revisited to determine the whether the coefficients are unbiased and consistent. However, the assumption for IID is not detailed here given that it is evaluated more generally for all three models within section 3. 
-
-The second CLM assumption to be evaluated here is that of a linear conditional expectation relationship within the data, so that the model is accurately estimating the relationship between the variables. To test for this, the residuals of model 1 are plotted against its fitted values.
-
-```{r}
-# Check for linearty in model 1
-plot(model1, which=1)
-```
-
-When examining the plot above for linearity in the conditional expectation, there is a noticeable slightly quadratic shape to the relationship of the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics. Additionally, there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity. 
-
-The third CLM assumption examined for model 1 is the assumption of normality of errors. This is a necessary assumption to ascertain that the errors used in the regression are drawn from a normal distribution, so that they can be accepted when used to calculate the significance levels. Both a QQ plot and histogram of the distribution of the residuals is plotted to observe the normality.
+The final CLM assumption examined for model 1 is the assumption of normality of errors. This is a necessary assumption to ascertain that the errors used in the regression are drawn from a normal distribution, so that they can be accepted when used to calculate the significance levels. Both a QQ plot and histogram of the distribution of the residuals is plotted to observe the normality.
 
 ```{r, message = FALSE}
 # Create a QQ plot for the model 1 residuals
@@ -216,14 +236,14 @@ df %>%
 
 From the QQ plot, normality in the residuals can be detected given the proximity of the points to the normal line. Additionally, although the shape is a little harder to observe, the histogram of the residuals also gives a fairly normal distribution.
 
-Finally the Cook's distance is examined by a plot of the residuals vs the model 1 leverage to look for any outliers in the values. From the plot below, no obvious outliers are detected.
+#### Influence of Data Points in Model 1
+
+In addition to the CLM assumptions, the Cook's distance is also examined by a plot of the residuals vs the model 1 leverage to estimate the influence of the data points and identify any outliers in the values. From the plot below, no obvious outliers are detected.
 
 ```{r, message = FALSE}
 # Investigate outliers using Cook's distance
 plot(model1, which=5)
 ```
-
-It is also noted that there is no test conducted for collinearity in model 1 given there is only one input variable.
 
 ### Model 2
 
