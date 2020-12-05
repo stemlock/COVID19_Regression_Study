@@ -46,14 +46,11 @@ df<-df%>%
          senior_pct = "X65.",
          population_2018 = "Population.2018", ## extra variable in test
          non_elderly_pre_existing = "Nonelderly.Adults.Who.Have.A.Pre.Existing.Condition",
-         homeless = "Number.Homeless..2019.",
-         medical_expense = "Medicaid.Expenditures.as.a.Percent.of.Total.State.Expenditures.by.Fund",
-         retail_recreation = 'Retail...recreation',
-         transit = 'Transit.stations') %>%
+         homeless = "Number.Homeless..2019.") %>%
   select(State, case_rate_100k, death_rate_100k,population_density, white_pct, black_pct, hispanic_pct, 
          other_pct, state_emergency, business_closed, business_reopen, mask_public, mask_legal, 
          black_population_pct, white_population_pct, poverty_pct, unemployed_pct, senior_pct,
-         population_2018, non_elderly_pre_existing, homeless, medical_expense, retail_recreation, transit)
+         population_2018, non_elderly_pre_existing, homeless)
 # Assign correct data types
 cols.num <- c("white_pct","black_pct","hispanic_pct","other_pct")
 df[cols.num] <- sapply(df[cols.num],as.numeric)
@@ -110,8 +107,8 @@ In order to allow for more simplistic and direct interpretations when analyzing 
 df <-df %>%
   mutate(    
     senior_per_100k = 100000*senior_pct,
-    poverty_per_100k = 100000*poverty_pct, 
-    unemployed_per_100k = 100000*unemployed_pct,
+    poverty_per_100k = 100000*poverty_pct/100, 
+    unemployed_per_100k = 100000*unemployed_pct/100,
   )
 ```
 
@@ -135,13 +132,12 @@ As can be seen above, the distribution is fairly normal, and given that it has a
 Next, the distribution of the senior percentage transformed into the rate per 100,000 (as discussed in the Model Variables section) is examined.
 
 ```{r, warning=FALSE, message=FALSE}
-summary(df$senior_per_100k)
 
 ggplot(data = df,
   mapping = aes(x= senior_per_100k)) +
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(10000,21000,1000)) +
   labs(title = 'Histogram of Seniors Distribution', 
-  x = 'Number of seniors per 100,000 people', y = 'Count') + 
+  x = 'Number of seniors per 100,000', y = 'Count') + 
   scale_x_continuous(breaks=seq(10000,22000,1000))
 ```
 
@@ -231,169 +227,71 @@ It is also noted that there is no test conducted for collinearity in model 1 giv
 
 ### Model 2
 
-For model 2, state demographic information regarding racial composition(white percentage of total population /Black Percentage of Total Population), economic status(unemployed percentage/poverty percentage), and population seniors percentage was investigated to explore its potential connection to the COVID pandemic status. 
-
-#### 2-a) White Percentage of Total Population/ Black Percentage of Total Population
-
-Variable of black percentage is stored as string variables. Moreover, three entries of black percentage of total population is "<0.01", which is to be dropped or replaced by values determined by extra resources for further analysis. 
-
-Here, the value of black percentage is replaced by 0 when it is "<0.01". Afterwards, the correlation of white percentage and black percentage is -0.42, which shows these two variables are correlated. Considering that the value of other race groups is much smaller, it is proper to only include white percentage in the regression model to explore the relation of care rate and racial composition. 
-
-The distribution of the white % is skewed, not an ideal normal distribution. While the distribution of the square of white % is more close to a normal distribution. In practice, this square could reflect the chance that the interaction happens between two white people. 
-
-```{r warning=FALSE}
-black_num <- as.numeric(df$black_population_pct)
-black_num[is.na(black_num)]<- 0
-cor(df$white_population_pct, black_num)
-```
+Based on the work of model 1, two extra state demographic information regarding poverty rate (percentage living under the federal poverty line in 2018) and unemployment rate (percentage of unemployed in 2018) would be included in the analysis of model 2. In addition, both newly-introduced percentage variables would be transformed into rates per 100,000 to align with the case rate variable.
 
 
-```{r}
-summary(df$white_population_pct)
-```
+First, the distribution of the poverty rate is examined as below.
 
 ```{r}
 ggplot(data = df,
-  mapping = aes(x= white_population_pct))+
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,1,0.05)) +
-  labs(title =  "Histogram of White Population Percentage", 
-       x = "White percentage of total population", y = 'Count')+
-  scale_x_continuous(breaks=seq(0, 1, 0.1))
+  mapping = aes(x= poverty_per_100k))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(6000,21200,800)) +
+  labs(title =  "Histogram of Poverty Rate", 
+       x = "Number of living under poverty line per 100,000", y = 'Count')+
+  scale_x_continuous(breaks=seq(6000, 21200, 1600))
 ```
-```{r}
-ggplot(data = df,
-  mapping = aes(x= (white_population_pct)^2))+
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,1,0.05)) +
-  labs(title =  "Histogram of Square of White Percentage", 
-       x = "White percentage of total population^2", y = 'Count')+
-  scale_x_continuous(breaks=seq(0, 1, 0.1))
-```
+As shown in the above distribution, there is a fairly normal distribution in the poverty number 
+per 100,000 across the states. Additionally, there is no outliers observed within the distribution,
+given that the range of rates fall between 7,600 and 19,700. Therefore, there is no further transformation in need for this variable in the following analysis process for both model 2 and model 3.
 
-#### 2-b) Percentage living under the federal poverty line (2018)
 
-Correlation of pecentage living under poverty line and white percentage of total population shows that they are not significantly related. The distribution of the poverty percentage is not heavily skewed. 
-
-```{r}
-summary(df$poverty_pct)
-cor(df$poverty_pct, df$white_population_pct)
-```
+Next, the distribution of the unemployment rate is examined as below. 
 
 ```{r}
 ggplot(data = df,
-  mapping = aes(x= poverty_pct))+
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(6,21,1)) +
-  labs(title =  "Histogram of Poverty Percentage", 
-       x = "Percentage living under poverty line (2018)", y = 'Count')+
-  scale_x_continuous(breaks=seq(6, 21, 1))
+  mapping = aes(x= unemployed_per_100k))+
+  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(2000,8000,500)) +
+  labs(title =  "Histogram of Unemployment Rate", 
+       x = "Number of unemployed per 100,000", y = 'Count')+
+  scale_x_continuous(breaks=seq(2000, 8000, 1000))
 ```
+According to the histogram above, the distribution of unemployed number per 100,000 is of fairly normal distribution. Overall, it is not highly skewed or heavily tailed. Therefore, there is no further transformation in need for this variable in the following analysis process for both model 2 and model 3.
 
-#### 2-c) Unemployed Percentage (2018)
+#### Model 2 Regression
 
-Although, the distribution is of high peak in the middle of the range. Overall, it is not highly skewed or heavily tailed. In addition, the unemployed rate is correlated to the variable to the poverty rate, which is in an agreement with intuitive expectation. 
 
-```{r}
-summary(df$unemployed_pct)
-cor(df$unemployed_pct, df$poverty_pct)
-```
-```{r}
-ggplot(data = df,
-  mapping = aes(x= unemployed_pct))+
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0,10,1)) +
-  labs(title =  "Histogram of Unemployed Percentage", 
-       x = "Unemployed percentage (2018)", y = 'Count')+
-  scale_x_continuous(breaks=seq(0, 10, 1))
-```
-
-#### 2-d) Seniors Percentage (Age 65+)
-
-The seniors percentage (age 65+) is of a nearly normal distribution.
-
-```{r}
-summary(df$senior_pct)
-```
-
-```{r}
-ggplot(data = df,
-  mapping = aes(x= senior_pct))+
-  geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(0.10,0.22,0.01)) +
-  labs(title =  "Histogram of Seniors Percentage (65+)", x = "Seniors percentage", 
-       y = 'Count')+
-  scale_x_continuous(breaks=seq(0.1, 0.25, 0.05))
-```
-
-### Model 2 Plots
-
-No obvious trend could be easily observed or concluded from the plots regarding the dependent variables and candidate covariates. 
+Compared to model 1, the relationship investigated here is about variables space with higher dimensions. It would be challenging to observe notable variation from variables distribution plots as below. 
 
 ```{r message=FALSE}
-df %>% 
-  ggplot(aes(white_population_pct, case_rate_100k, color = log10(population_density))) + 
+case_poverty <- df %>% 
+  ggplot(aes(poverty_per_100k, case_rate_100k, color = senior_per_100k)) + 
   geom_point() + 
   geom_smooth(se=FALSE)+
   labs(
-    title = 'Relation of Case Rate Per 100000 to White Population Percentage', 
-    x = 'White percentage of total population', 
-    y = 'Case rate per 100000',
-    color = 'Log 10 of population density'
+    title = ' Association between Covid-19 ase rate and the poverty rate', 
+    x = 'Number of living under poverty line per 100,000',
+    y = 'Covid-19 care rate per 100,000', 
+    color = 'Senior num per 100k'
   )
-```
 
-```{r message=FALSE}
-df %>% 
-  ggplot(aes(x = white_population_pct, y = case_rate_100k, color = poverty_pct)) + 
-  geom_point() +
-  geom_smooth(se=FALSE)+
-  labs(
-    title = 'Relation of Case Rate per 100000 to White Population Percentage', 
-    x = 'White percentage of total population', 
-    y = 'Case rate per 100000',
-    color = 'Poverty percentage'
-  )
-```
-
-```{r message=FALSE}
-df %>% 
-  ggplot(aes(x = poverty_pct , y = case_rate_100k, color = log10(population_density))) + 
+case_unemployed <- df %>% 
+  ggplot(aes(unemployed_per_100k, case_rate_100k, color = senior_per_100k)) + 
   geom_point() + 
   geom_smooth(se=FALSE)+
   labs(
-    title = 'Relation of Case Rate per 100000 to Poverty Percentage', 
-    x = 'Poverty Percentage', 
-    y = 'Case rate per 100000',
-    color = 'Log 10 of population density'
+    title = 'Association between Covid-19 ase rate and the unemployment rate', 
+    x = 'Number of unemployed per 100,000', 
+    y = 'Covid-19 care rate per 100,000',
+    color = 'Senior num per 100k'
   )
+
+case_poverty / case_unemployed
 ```
+However, there is an overall increasing trend of COVID-19 care rate with increasing poverty rate, while there is a inverse relationship between the variables of the COVID-19 case rate and the unemployment rate. 
 
-```{r message=FALSE}
-df %>% 
-  ggplot(aes(unemployed_pct, case_rate_100k, color = log10(population_density))) + 
-  geom_point() + 
-  geom_smooth(se=FALSE)+
-  labs(
-    title = 'Relation of Case Rate per 100000 to Unemployed Percentage', 
-    x = 'Unemployed percentage (2018)', 
-    y = 'Case rate per 100000',
-    color = 'log 10 of population density'
-  )
-```
+Based on above data exploratory result, the following equation is used to create a regression model
+to determine the relationship between the case rate and demographic features including the seniors rate, the rate of poverty and the rate of unemployment. 
 
-```{r message=FALSE}
-df %>% 
-  ggplot(aes(senior_pct, case_rate_100k, color = log10(population_density))) + 
-  geom_point() +   
-  geom_smooth(se=FALSE)+
-  labs(
-    title = 'Relation of Case Rate per 100000 to Seniors Percentage (65+)', 
-    x = 'Seniors percentage', 
-    y = 'Case rate per 100000',
-    color = 'log 10 of population density'
-  )
-```
-
-
-
-### Model 2 Regression
-The regression models regarding the demographic variables discussed previously are listed as below.
 
 $$
 \begin{aligned}
@@ -403,21 +301,31 @@ $$
 
 ```{r}
 model2 <- lm(case_rate_100k ~ senior_per_100k + poverty_per_100k + unemployed_per_100k, data = df)
+```
+
+Accordingt to the assessment of homoskedasticity of model 2, which would be discussed in the following paragraph (Model 2 limits - iv.Homoskedastic Errors), it is plausible to apply the classical standard errors in the t-test of coefficients here. 
+
+```{r}
 coeftest(model2)
 ```
 
-#### (need to update)
-From the results of the regression, none of the coefficients of investigated variables in model 2 are significant (p-value < 0.05). Among these regression coefficient tests,  the p-value regarding the poverty percentage variable is the lowest (0.05755).  In addition, its positive estimated coefficient is consistent with the statement that low-income communities are at high pandemic risk claimed by mainstream media these days. 
+Based on the test results of the estimated coefficients in model 2, all three demographic features discussed here are significantly realated to the COVID-19 care rate, especially for the poverty rate (p-value < 0.01).
 
-### Model 2 limits
+The coefficient of the senior_per_100k is  -0.230970 and statistically significant, which implies that for every one thousand additional seniors per 100,000, there is a decrease of 231 COVID-19 cases per 100,000 holding other demographic features as constant. As discussed in mode1 1 section, although seniors are susceptible group, less mobility and social interaction with cautious self procetion may play a important role in this pandemic situation. 
 
-#### i. IID Sampling 
-( Discussed in the common section)
+In addition, the coefficient of the poverty_per_100k (0.231750) indicats that for every one thousand additional people living under poverty line per 100,000, there is a increase of 232 COVID-19 case per 100,000 holding other demographic features as constant. People living under the poverty line have limited accesss to medical resourses. Moreover, most of them could only afford to live in the communites with poor hygiene.  condition. 
 
-#### ii.Linear Conditional Expectation
-Assessing non-linear in higher-dimensional space: look at the predicted vs. residuals of the model.
+Finally, the coefficient of the unemployed_per_100k is statiscally significant and negative(-0.486191), which implies that for every one thousand additional unemployed, there is a decrease of 486 COVID-19 case per 100,000 holding other demographic features as constant. Although the unemployment leads to less medical insurace coverage and impact on the incoming, the unempolyed people may have more flexibility in obeying stay-at-home. In addition, there is less expourse probability when no commuting or in-place working is required for the unemployed. 
 
-```{r, echo=FALSE}
+#### Model 2 limits
+
+##### i. IID Sampling 
+(Would be discussed in the following section - 3. Limitations of the Models)
+
+##### ii.Linear Conditional Expectation
+To assess the linear conditional expectation assumption in higher-dimensional space, the plots of predicted versus residuals of the model 2 is investigated as follow.  
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 df<- df%>% 
   mutate(
     model2_preds = predict(model2), 
@@ -429,38 +337,45 @@ df %>%
   stat_smooth()
 ```
 
-####iii.No Perfect Collinearity
-First, check if any variables were dropped by R. No coefficient is missing, which mean there is no perfect collinearity. 
+Overall, the residuals maintain around zero across the predicted range. There is no assumption violation phenomenon could be observed here. 
+
+#####iii.No Perfect Collinearity
+
+Since there are multiple covariates included in this model compared to the model 1, there is more concern about the no perfect collinearity assumption here
+First, the list of variables coefficients shows that no variables were dropped, which mean there is no perfect collinearity detected by the R function. 
 
 ```{r}
 model2$coefficients
 ```
 
-In addition, all the variance inflation factors are less than 4, which doesn't indicate the exisitence of collinearity. 
+In addition, all the variance inflation factors are less than 4 as follow, which doesn't indicate the exisitence of collinearity. 
 
 ```{r}
 vif(model2)
 ```
 
-####iv.Homoskedastic Errors
-10 is Florida, 33 is New York, 35 is North Dakota
+#####iv.Homoskedastic Errors
+To evaluate the homoskedastic errors assumption, the square root of the residuals is plotted against the fitted values of the model 2 (scale-location plot). Although, the curve is not perfect flat smooth, there is no obvious variance of the errors either. For reference, the data points marked in the plot represent Florida(10), New York (33) and North Dakota (35).
 
 ```{r, echo=FALSE}
 plot(model2, which=3)
 ```
 
+Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity. The test result shows it fails to reject the null hypotheis, which means there is no evidence for heteroskedasticity. Overall, the assumption of homoskedastic errors is satisfied for model 2. 
+
 ```{r, echo=FALSE}
 bptest(model2)
 ```
 
-####v.Normally Distributed Errors
-Check the normality of error distribution based on the histogram of residuals and the qqplot.
+#####v.Normally Distributed Errors
+To access the assumption of normality of error distribution, both the histogram and the qqplot of the residuals is shown as follow.
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=False}
 plot_one <- df %>% 
-  ggplot(aes(x = model2_resids)) + 
-  stat_bin(bins = 25)
-  geom_histogram()
+  ggplot(aes(x = model2_resids)) +
+  geom_histogram(fill = 'skyblue', color = 'grey30', bins=30) +
+  labs(title =  "Histogram of the Model 2 Residuals", 
+       x = "Model 2 residuals", y = 'Count')
   
 plot_two <- df %>% 
   ggplot(aes(sample = model2_resids)) + 
@@ -468,21 +383,17 @@ plot_two <- df %>%
 
 plot_one / plot_two
 ```
+Limited by the sample size, it is hard to observe a perfect normal distribution from the histogram. However, the qqplot implies no deviation from normality. Overall, the normally distributed errors assumption is satisfied for model 2. 
 
-#### GGPairs
+##### Cook Distance 
 
-```{r, echo=FALSE}
-df %>% 
-  select(case_rate_100k, senior_per_100k, poverty_per_100k, unemployed_per_100k) %>% 
-  GGally::ggpairs()
-```
-
-#### Cook Distance 
-10 Florida, 20 Maine, 35 North Dakota
+Additionally, cook distance is used to estimate the influence of each single data point. 
 
 ```{r, echo =FALSE}
 plot(model2, which = 5)
 ```
+No obvious outlier could be detected here. For reference, the marked data points are Florida(10), Maine(20), and North Dakota(30).
+
 
 ### Model 3 
 
@@ -571,9 +482,9 @@ histogram_of_pdensity <- df %>%
 histogram_of_pdensity
 ```
 
-### Model 3 Regression
+#### Model 3 Regression
 
-Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor related to the spread of disease. 
+Next, the regression model for model 3 is based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor considering nature of spread in disease. 
 
 The regression coefficient shows that Mask_public_bool variable is highly significant. And the result suggests that public mask mandate policy has positive effect in bringing the case number down. In detail, the COVID-19 case rate can be reduced by 945 out of every 100k people if the state enforces public mask mandate keeping all other variables the same. 
 
@@ -581,8 +492,7 @@ The population density variable however is not significant in the regression eve
 
 After careful discussion, the team still decided to keep "population_density" variable in model 3 even it is insignificant for the following reasons. First, adding population density variable has little effect on the change of coefficients of control variables in model 2. Second, we don't see evidence that the variable worsens the validation of CLM assumptions compared to model 2. Finally, the variable do offer meaningful information that is relevant to the main research question.
 
-```{r, warning=FALSE}
-
+```{r}
 model3 <- lm(case_rate_100k ~ senior_per_100k 
               + poverty_per_100k 
               + unemployed_per_100k 
@@ -592,16 +502,9 @@ coeftest(model3)
 
 ```
 
-
-### CLM Assumptions Validation for Model 3:
-
-#### I.I.D Assumption
-
-
-( Discussed in the common section)
+CLM assumptions check for Model 3:
 
 #### Zero Conditional Mean
-
 
 The Residual vs Fitted chat shows a almost flat line that is close to zero, with the tails a bit skewed. There is no strong evidence that there are unincoorperated linear relationship that we are not capturing from the control variables.
 ```{r}
@@ -609,43 +512,25 @@ The Residual vs Fitted chat shows a almost flat line that is close to zero, with
 plot(model3, which=1)
 ```
 
-#### Normality of Errors
-
-
-From the Normal Q-Q plot below, the points generally stay close to the normal line, with the tails exhibit certain degree of skew. There is no significant evidence of concerning normality in the errros.
+#### Normality of errors
+From the Normal Q-Q plot below, the points generally stay close to the normal line, with the tails exhibit certain degree of skew. 
 ```{r}
 plot(model3, which=2)
 ```
 
 #### Homoskedasticity
-
-
-According to the plot of Homoskedasticity, the standardized residual falls into a reasonable range and the line looks smooth without concerning skews. There is no significant evidence that the model violates homoskedasticity assumptions.
 ```{r}
 
 plot(model3, which=3)
-
 ```
-
-#### Collinearity
-
-
-Based on the Variance Inflation Factors check, all the variables have variance-inflation factors less than 4. As a result, there's no strong evidence of collinearity concern within the model. 
 ```{r}
-
-vif(model3)>4
-```
-
-#### Cook's Distance
-
-
-From the Cook's plot, there is no strong evidence of concerning outliers.
-
-```{r}
-
+#Cook distance
 plot(model3, which=5)
 ```
-
+```{r}
+#Collinearity
+vif(model3)
+```
 
 
 ## 3. Limitations of the Models
