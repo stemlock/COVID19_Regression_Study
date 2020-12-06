@@ -486,7 +486,7 @@ histogram_of_pdensity
 
 ### 2-3-2. Model 3 Regression
 
-Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the value is logged as discussed earlier) which is considered an important factor related to the spread of disease. 
+Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as the maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the variable is transformed with log of 10 as discussed earlier) which is considered an important factor related to the spread of disease. 
 
 The regression coefficient shows that Mask_public_bool variable is highly significant. And the result suggests that public mask mandate policy has positive effect in bringing the case number down. In detail, the COVID-19 case rate can be reduced by 945 out of every 100k people if the state enforces public mask mandate keeping all other variables the same. 
 
@@ -530,11 +530,16 @@ vif(model3)>4
 
 #### iv. Homoskedastic Errors
 
-According to the plot of Homoskedasticity, the standardized residual falls into a reasonable range and the line looks smooth without concerning skews. There is no significant evidence that the model violates homoskedasticity assumptions.
+According to the plot of Homoskedasticity, the standardized residual falls into a reasonable range and the curve looks smooth without concerning skews. There is no significant evidence that the model violates homoskedasticity assumptions.
 ```{r}
 
 plot(model3, which=3)
 
+```
+Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity. The test result shows it fails to reject the null hypothesis, which indicates that there is no strong evidence of heteroskedasticity in model 3.
+
+```{r, echo=FALSE}
+bptest(model3)
 ```
 
 #### v. Normally Distributed Errors
@@ -647,6 +652,6 @@ From the three phases of investigation, there was strong evidence in the data to
 
 Starting with the variable with the greatest effect size, it can be seen that the implementation of a mask policy in a state leads to a decrease of 945 cases per 100,000. Given that research from leading health organizations shows that the wearing of masks helps to decrease the chance of the transmission of COVID-19, it could be suggested that a mask policy is effective in increasing the adoption of wearing masks among the state population. Next, it can be seen that there is a decrease of roughly 1 case per 100,000 with every 3 additional people unemployed per 100,000. This suggests that as unemployment increases, the case rate decreases, which could be a result of the fact that those who are unemployed may be less mobile as they are not commuting into work, lowering the likelihood of contracting the virus. Additionally, at the time that this data was collected, the Coronavirus Aid, Relief, and Economic Security (CARES) Act was still supporting the unemployed with relief payments so there was less urgency to be out looking for work. Following unemployment, when examining the poverty variable there is actually an increase of roughly 1 case per 100,000 for every 5 additional people per 100,000 living under the federal poverty line. Although there is some intuition behind the unemployment and poverty rates having similar effects on case rate, it can be seen from the test of collinearity in the Model 2 section that these two variables are not explaining the same effects. This difference is likely due to the fact that those living below the poverty line have less access to suitable living conditions and sanitary goods that help to alleviate the possibility of COVID-19 infection. As a caveat, it should be noted that these the poverty and unemployment figures are from a 2018 survey, so it does not reflect the full picture of the state demographics at the time of when the COVID-19 related data was captured. Finally, the effect of the senior rate is negative, with an additional 4 seniors per 100,000 translating to roughly 1 fewer case per 100,000. As touched upon in the introduction, this could be largely down to the fact that it is widely broadcasted that seniors fall within the high risk category in terms of having severe complications from COVID-19, and therefore they are more diligent in the precautions they take against contracting the virus.
 
-In conclusion, we see that although the population demographics had varying effects on the COVID-19 case rate, the greatest effect was seen from the mask policy. Going back to our original question, it can be suggested within the data that the effect of a mask-related policy is something that should not be neglected in comparison to the population demographics. Therefore, it seems that the COVID-19 case rate at the state-level is dependent on masks, and that ultimately, there are effective policy and control measures that can be taken by state governments that have some contribution towards combating it's spread relative to factors that cannot be controlled. However, it should be noted that these insights are qualified by the assumptions and limitations laid out throughout the report, namely that there are potential issues in meeting the IID assumption and that there is explanatory information that is lost from both the variables investigated as well as the those that were not included in the dataset.
+In conclusion, we see that although the population demographics had varying effects on the COVID-19 case rate, the greatest effect was seen from the mask policy. Going back to our original question, it can be suggested within the data that the effect of a mask-related policy is something that should not be neglected in comparison to the population demographics. Therefore, it seems that the COVID-19 case rate at the state-level is dependent on masks, and that ultimately, there are effective policy and control measures that can be taken by state governments that have some contribution towards combating its spread relative to factors that cannot be controlled. However, it should be noted that these insights are qualified by the assumptions and limitations laid out throughout the report, namely that there are potential issues in meeting the IID assumption and that there is explanatory information that is lost from both the variables investigated as well as the those that were not included in the dataset.
 
 # References
