@@ -5,6 +5,8 @@ output:
   pdf_document: default
   html_document:
     df_print: paged
+bibliography: references.bib
+nocite: '@*'
 ---
 
  **Initial reassignment of common data used across models:**
@@ -654,4 +656,5 @@ Starting with the variable with the greatest effect size, it can be seen that th
 
 In conclusion, we see that although the population demographics had varying effects on the COVID-19 case rate, the greatest effect was seen from the mask policy. Going back to our original question, it can be suggested within the data that the effect of a mask-related policy is something that should not be neglected in comparison to the population demographics. Therefore, it seems that the COVID-19 case rate at the state-level is dependent on masks, and that ultimately, there are effective policy and control measures that can be taken by state governments that have some contribution towards combating its spread relative to factors that cannot be controlled. However, it should be noted that these insights are qualified by the assumptions and limitations laid out throughout the report, namely that there are potential issues in meeting the IID assumption and that there is explanatory information that is lost from both the variables investigated as well as the those that were not included in the dataset.
 
+\pagebreak
 # References
