@@ -120,7 +120,7 @@ ggplot(data = df,
   scale_x_continuous(breaks=seq(10000,22000,1000))
 ```
 
-As can be seen from the distribution above, again there is a fairly normal distribution in the population of seniors per 100,000 across the state. Additionally, there do not seem to be any outliers within the distribution, given that the range of rates fall between 11,000 and 21,000. Therefore, there are no transformations that need to be made in order to restructure the distribution, and this variable can be used across all three models.
+As can be seen from the distribution above, again there is a fairly normal distribution in the senior rate per 100,000 across the state. Additionally, there do not seem to be any outliers within the distribution, given that the range of rates fall between 11,000 and 21,000. Therefore, there are no additional transformations that need to be made in order to restructure the distribution, and this variable can be used across all three models.
 
 With the appropriate variable distributions investigated, a plot is created to analyze the relationship between them. 
 
@@ -140,7 +140,7 @@ From the above plot, there is noticeable variation in the smoothed blue line. Ho
 
 ### 2-1-2. Model 1 Regression
 
-In order to test the relationship between the variables, the following equation is used to create a regression model to determine the true relationship between the case rate and population density variables. 
+In order to test the relationship between the variables, the following equation is used to create a regression model for the case rate and senior rate variables. 
 
 $$
 case{\_}rate{\_}100k =\beta_0 + \beta_1 senior{\_}per{\_}100k
@@ -151,7 +151,7 @@ $$
 model1 <- lm(case_rate_100k ~ senior_per_100k , data = df)
 ```
 
-To improve the precision of the t-test of coefficients, classical standard errors can be used over robust standard errors to test the regression. To determine the applicability of using classical standard errors, in addition to the three Classical Linear Model (CLM) assumptions necessary for the robust standard errors, the CLM assumption for homoskedastic conditional errors should be evaluated. If this additional assumption is met, the robust standard errors can be replaced by the classical standard errors. The assumption of homoskedasticity is met if the data does not have large variance among the residuals. The analysis for this assumption, as well as the other CLM assumptions, is conducted in the following subsection titled "Model 1 CLM Assumptions".
+To improve the precision of the t-test of coefficients, classical standard errors can be used over robust standard errors to test the regression. To determine the applicability of using classical standard errors, in addition to the three Classical Linear Model (CLM) assumptions necessary for the robust standard errors, the CLM assumption for homoskedastic conditional errors should be evaluated. If this additional assumption is met, the robust standard errors can be replaced by the classical standard errors. The assumption of homoskedasticity is met if the data does not have large variance among the residuals. The analysis for this assumption, as well as the other CLM assumptions, is conducted in subsection 2-1-3, titled "Model 1 Limitations".
 
 Below, the t-test of coefficients is run on the regression model above. 
 
@@ -159,7 +159,7 @@ Below, the t-test of coefficients is run on the regression model above.
 coeftest(model1)
 ```
 
-As can be seen from the above output, the variable for senior percentage is shown to be significant within the model specification with a p-value of 0.023. Furthermore, The coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior percentage and the case rate. In practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
+As can be seen from the above output, the variable for senior rate is shown to be significant within the model specification with a p-value of 0.023. Furthermore, the coefficient of -0.174 for the variable is negative, supporting the earlier evaluation that there is an inverse relationship between the senior rate and the case rate. In terms of practical significance, this can be interpreted as for every additional senior per 100,000 in the population, there is a decrease of 0.174 COVID-19 cases per 100,000. More intuitively, for roughly every 6 additional seniors per 100,000, there is a decrease of 1 case per 100,000.
 
 ### 2-1-3. Model 1 Limitations
 
@@ -169,14 +169,14 @@ The first assumption of IID is not detailed within this section given that it is
 
 #### ii. Linear Conditional Expectation
 
-The second CLM assumption to be evaluated is that of a linear conditional expectation relationship within the data, so that the model is accurately estimating the relationship between the variables. To test for this, the residuals of model 1 are plotted against its fitted values.
+The second CLM assumption to be evaluated is that of a linear conditional expectation relationship within the model, to diagnose whether the model is accurately estimating the relationship between the variables. To test for this, the residuals of model 1 are plotted against the fitted values.
 
 ```{r}
 # Check for linearty in model 1
 plot(model1, which=1)
 ```
 
-When examining the plot above for linearity in the conditional expectation, there is a noticeable slightly quadratic shape to the relationship of the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics. Additionally, there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity. 
+When examining the plot above for linearity in the conditional expectation, there is a noticeably slightly quadratic shape to the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics, so there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity. 
 
 #### iii. No Perfect Collinearity
 
@@ -194,7 +194,7 @@ plot(model1, which=3)
 bptest(model1)
 ```
 
-From the above plot, the variance in residuals can be seen to be roughly constant given the relative flatness of the plotted red line, thus meeting the assumption of homoskedastic conditional errors. This is supported by the p-value of 0.497 from the Breusch-Pagan test, meaning it fails to reject the null hypothesis that the conditional errors are not heteroskedastic. With this additional assumption met, the regression model is run using a t-test with classical standard errors. 
+From the above plot, the variance in residuals can be seen to be roughly constant given the relative flatness of the plotted red line, thus meeting the assumption of homoskedastic conditional errors. This is supported by the p-value of 0.497 from the Breusch-Pagan test, meaning it fails to reject the null hypothesis that the conditional errors are not heteroskedastic. 
 
 #### v. Normally Distributed Errors
 
@@ -217,11 +217,11 @@ plot_two <- df %>%
 plot_one / plot_two
 ```
 
-From the Q-Q plot, normality in the residuals can be detected given the proximity of the points to the normal line. Additionally, although the shape is a little harder to observe, the histogram of the residuals also gives a fairly normal distribution.
+From the Q-Q plot, normality in the residuals can be detected given the proximity of the points to the normal line. Additionally, although the shape is a little harder to observe, the histogram of the residuals gives a fairly normal distribution.
 
 #### vi. Influence of Data Points
 
-In addition to the CLM assumptions, the Cook's distance is also examined by a plot of the residuals vs the model 1 leverage to estimate the influence of the data points and identify any outliers in the values. From the plot below, no obvious outliers are detected.
+In addition to the CLM assumptions, the Cook's distance is also examined by a plot of the residuals vs the leverage to estimate the influence of the data points and identify any outliers in the values. From the plot below, no obvious outliers are detected.
 
 ```{r, message = FALSE}
 # Investigate outliers using Cook's distance
