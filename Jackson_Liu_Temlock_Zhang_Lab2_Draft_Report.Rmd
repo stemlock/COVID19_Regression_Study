@@ -9,7 +9,7 @@ bibliography: references.bib
 nocite: '@*'
 ---
 
- **Initial reassignment of common data used across models:**
+ **Initial reassignment of common variables used across models:**
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 install.packages("GGally")
@@ -34,12 +34,11 @@ df<-df%>%
          mask_public='Mandate.face.mask.use.by.all.individuals.in.public.spaces',
          poverty_pct = "Percent.living.under.the.federal.poverty.line..2018.",
          unemployed_pct = "Percent.Unemployed..2018.",
-         senior_pct = "X65.",
-         population_2018 = "Population.2018" ## extra variable in test
+         senior_pct = "X65."
          ) %>%
   select(State, case_rate_100k, population_density, mask_public, poverty_pct, 
-         unemployed_pct, senior_pct, population_2018)
-# Assign correct data types
+         unemployed_pct, senior_pct)
+
 head(df)
 ```
 
@@ -108,14 +107,14 @@ ggplot(data = df,
 
 As can be seen above, the distribution is fairly normal, and given that it has already been standardized as a rate across all states, there is no need to perform any transformations on this variable. Thus, the case rate per 100,000 variable can be leveraged as is as the dependent variable for all three models.
 
-Next, the distribution of the senior percentage transformed into the rate per 100,000 (as discussed in the Model Variables section) is examined.
+Next, the distribution of the senior percentage transformed into the rate per 100,000 is examined.
 
 ```{r, warning=FALSE, message=FALSE}
 
 ggplot(data = df,
   mapping = aes(x= senior_per_100k)) +
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(10000,21000,1000)) +
-  labs(title = 'Histogram of Seniors Distribution', 
+  labs(title = 'Histogram of Senior Rate', 
   x = 'Number of seniors per 100,000', y = 'Count') + 
   scale_x_continuous(breaks=seq(10000,22000,1000))
 ```
@@ -171,12 +170,20 @@ The first assumption of IID is not detailed within this section given that it is
 
 The second CLM assumption to be evaluated is that of a linear conditional expectation relationship within the model, to diagnose whether the model is accurately estimating the relationship between the variables. To test for this, the residuals of model 1 are plotted against the fitted values.
 
-```{r}
-# Check for linearty in model 1
-plot(model1, which=1)
+```{r, message = FALSE}
+
+df<- df%>% 
+  mutate(
+    model1_preds = predict(model1), 
+    model1_resids = resid(model1)
+  ) 
+df %>% 
+  ggplot(aes(model1_preds, model1_resids)) + 
+  geom_point() + 
+  stat_smooth()
 ```
 
-When examining the plot above for linearity in the conditional expectation, there is a noticeably slightly quadratic shape to the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics, so there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity. For reference, the marked data points are New York (33), North Dakota (35), and South Dakota (42).
+When examining the plot above for linearity in the conditional expectation, there is a noticeably slightly quadratic shape to the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics, so there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity.
 
 #### iii. No Perfect Collinearity
 
@@ -206,13 +213,13 @@ plot_one <- df %>%
   ggplot(aes(x = resid(model1))) +
   stat_bin() +
   geom_histogram(fill = 'skyblue', color = 'grey30', bins=30) +
-  labs(title =  "Histogram of the Model 1 Residuals", 
+  labs(title =  "Histogram and Q-Q Plot of the Model 1 Residuals", 
        x = "Model 1 residuals", y = 'Count')
 
 # Create a QQ plot for the model 1 residuals
 plot_two <- df %>% 
   ggplot(aes(sample = resid(model1))) + 
-  stat_qq() + stat_qq_line()
+  stat_qq() + stat_qq_line() 
 
 plot_one / plot_two
 ```
@@ -232,7 +239,11 @@ plot(model1, which=5)
 
 ### 2-2-1. Model 2 Exploratory Data Analysis
 
-Based on the work of model 1, two extra state demographic features regarding poverty rate (percentage living under the federal poverty line in 2018) and unemployment rate (percentage of unemployed in 2018) would be included in the analysis of model 2. In addition, both newly-introduced percentage variables would be transformed into rates per 100,000 to align with the case rate variable.
+Based on the work of model 1, two extra state demographic features regarding poverty rate (percentage living under the federal poverty line in 2018) and unemployment rate (percentage of unemployed in 2018) would be included in the analysis of model 2. Although the increasing unemployment rate during the pandemic has been widely covered by the media, the potential pandemic causing poverty or unemployment will not be investigated here, according to the designed research question in this work. 
+
+Due to the fact that both poverty rate and unemployment rate data represents the status in 2018, it is proper to assume that they represent the pre-existing state demographic characteristics instead of the capturing any influence from the pandemic. 
+
+In addition, both newly-introduced percentage variables would be transformed into rates per 100,000 to align with the case rate variable.
 
 First, the distribution of the poverty rate is examined as below.
 
@@ -241,7 +252,7 @@ ggplot(data = df,
   mapping = aes(x= poverty_per_100k))+
   geom_histogram(fill = 'skyblue', color = 'grey30', breaks = seq(6000,21200,800)) +
   labs(title =  "Histogram of Poverty Rate", 
-       x = "Number of living under poverty line per 100,000", y = 'Count')+
+       x = "Number of people living under poverty line per 100,000", y = 'Count')+
   scale_x_continuous(breaks=seq(6000, 21200, 1600))
 ```
 As shown in the above distribution, there is a fairly normal distribution in the poverty number per 100,000 across the states. Additionally, there is no outlier observed within the distribution, given that the range of rates fall between 7,600 and 19,700. Therefore, there is no further transformation in need for this variable in the following analysis process for both model 2 and model 3.
@@ -262,7 +273,7 @@ According to the histogram above, the distribution of unemployed number per 100,
 ### 2-2-2. Model 2 Regression
 
 
-Compared to model 1, the relationship investigated here is about variables space with higher dimensions. It would be challenging to observe notable variation from variables distribution plots as below. 
+Compared to model 1, the relationship investigated here involves a higher dimensional space. It would be challenging to observe notable variation from variables distribution plots as below. 
 
 ```{r message=FALSE}
 case_poverty <- df %>% 
@@ -272,8 +283,8 @@ case_poverty <- df %>%
   labs(
     title = 'COVID-19 case rate vs poverty rate', 
     x = 'Number of living under poverty line per 100,000',
-    y = 'COVID-19 case rate per 100,000', 
-    color = 'Senior num per 100k'
+    y = 'Case rate per 100,000', 
+    color = 'Seniors per 100k'
   )
 
 case_unemployed <- df %>% 
@@ -283,19 +294,19 @@ case_unemployed <- df %>%
   labs(
     title = 'COVID-19 case rate vs unemployment rate', 
     x = 'Number of unemployed per 100,000', 
-    y = 'COVID-19 case rate per 100,000',
-    color = 'Senior num per 100k'
+    y = 'Case rate per 100,000',
+    color = 'Seniors per 100k'
   )
 
 case_poverty / case_unemployed
 ```
 However, there is an overall increasing trend of COVID-19 case rate with increasing poverty rate, while there is an inverse relationship between the variables of the COVID-19 case rate and the unemployment rate. 
 
-Based on the above data exploratory result, the following equation is used to create a regression model to determine the relationship between the case rate and demographic features including the seniors rate, the rate of poverty and the rate of unemployment. 
+Based on the above data exploratory result, the following equation is used to create a regression model to determine the relationship between the case rate and demographic features including the senior rate, the rate of poverty and the rate of unemployment. 
 
 $$
 \begin{aligned}
- Case.Rate.Per.100K =\beta_0 &+\beta_1Senior.Rate.Per.100K +\beta_2Poverty.Rate.Per.100K +\beta_3Unemployed.Per.100K
+ case\_rate\_100k =\beta_0 &+\beta_1senior\_per\_100k +\beta_2poverty\_per\_100k +\beta_3unemployed\_per\_100k
 \end{aligned}
 $$
 
@@ -311,11 +322,11 @@ coeftest(model2)
 
 Based on the test results of the estimated coefficients in model 2, all three demographic features discussed here are significantly related to the COVID-19 case rate, especially for the poverty rate (p-value < 0.01).
 
-The coefficient of the senior_per_100k is -0.230970 and statistically significant, which implies that for every one thousand additional seniors per 100,000, there is a decrease of 231 COVID-19 cases per 100,000, holding other demographic features as constant. As discussed in mode1 1 section, although seniors are susceptible group, less mobility and social interaction with cautious self protection may play an important role in this pandemic situation. 
+The coefficient of the senior rate (senior_per_100k) is -0.230970 and statistically significant, which implies that for every one thousand additional seniors per 100,000, there is a decrease of 231 COVID-19 cases per 100,000, holding other demographic features as constant. As discussed in mode1 1 section, although seniors are susceptible group, less mobility and social interaction with cautious self protection may play an important role in this pandemic situation. 
 
-In addition, the coefficient of the poverty_per_100k (0.231750) indicates that for every one thousand additional people living under poverty line per 100,000, there is a increase of 232 COVID-19 cases per 100,000, holding other demographic features as constant. People living under the poverty line have limited access to medical resources. Moreover, most of them could only afford to live in the communities with poor hygiene conditions. 
+In addition, the coefficient of the poverty rate (poverty_per_100k) (0.231750) indicates that for every one thousand additional people living under poverty line per 100,000, there is a increase of 232 COVID-19 cases per 100,000, holding other demographic features as constant. People living under the poverty line have limited access to medical resources. Moreover, most of them could only afford to live in the communities with poor hygiene conditions. 
 
-Finally, the coefficient of the unemployed_per_100k is statistically significant and negative (-0.486191), which implies that for every one thousand additional unemployed, there is a decrease of 486 COVID-19 case per 100,000, holding other demographic features as constant. Although the unemployment leads to less medical insurance coverage and impact on their income, the unemployed people may have more flexibility to obey stay-at-home orders. In addition, there is less exposure probability when there is no commuting or in-place working required for the unemployed. 
+Finally, the coefficient of the unemployment rate (unemployed_per_100k) is statistically significant and negative (-0.486191), which implies that for every one thousand additional unemployed, there is a decrease of 486 COVID-19 case per 100,000, holding other demographic features as constant. Although the unemployment leads to less medical insurance coverage and impact on their income, the unemployed people may have more flexibility to obey stay-at-home orders. In addition, there is less exposure probability when there is no commuting or in-place working required for the unemployed. 
 
 ### 2-2-3. Model 2 Limitations
 
@@ -326,7 +337,7 @@ The first assumption of IID is not detailed within this section given that it is
 #### ii. Linear Conditional Expectation
 To assess the linear conditional expectation assumption in higher-dimensional space, the plots of predicted versus residuals of the model 2 is investigated as follows.  
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE}
 df<- df%>% 
   mutate(
     model2_preds = predict(model2), 
@@ -348,7 +359,7 @@ Since there are multiple covariates included in this model compared to the model
 model2$coefficients
 ```
 
-In addition, all the variance inflation factors are less than 4 as follows, which doesn't indicate the existence of collinearity. 
+In addition, all the variance inflation factors are less than 4 as follows, which doesn't indicate the existence of high collinearity. 
 
 ```{r}
 vif(model2)
@@ -357,24 +368,24 @@ vif(model2)
 #### iv. Homoskedastic Errors
 To evaluate the homoskedastic errors assumption, the square root of the residuals is plotted against the fitted values of model 2 (scale-location plot). Although, the curve is not perfectly flat, there is no obvious variance of the errors either. For reference, the data points marked in the plot represent Florida (10), New York (33) and North Dakota (35).
 
-```{r, echo=FALSE}
+```{r}
 plot(model2, which=3)
 ```
 
 Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity. The test result shows it fails to reject the null hypothesis, which means there is no evidence for heteroskedasticity. Overall, the assumption of homoskedastic errors is satisfied for model 2. 
 
-```{r, echo=FALSE}
+```{r}
 bptest(model2)
 ```
 
 #### v. Normally Distributed Errors
 To access the assumption of normality of error distribution, both the histogram and the Q-Q plot of the residuals is shown as follow.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r,  warning=FALSE, message=FALSE}
 plot_one <- df %>% 
   ggplot(aes(x = model2_resids)) +
   geom_histogram(fill = 'skyblue', color = 'grey30', bins=30) +
-  labs(title =  "Histogram of the Model 2 Residuals", 
+  labs(title =  "Histogram and Q-Q Plot of the Model 2 Residuals", 
        x = "Model 2 residuals", y = 'Count')
   
 plot_two <- df %>% 
@@ -389,7 +400,7 @@ Limited by the sample size, it is hard to observe a perfect normal distribution 
 
 Additionally, Cook's distance is used to estimate the influence of each single data point. 
 
-```{r, echo =FALSE}
+```{r}
 plot(model2, which = 5)
 ```
 
@@ -399,13 +410,13 @@ No obvious outliers could be detected here. For reference, the marked data point
 
 ### 2-3-1. Model 3 Exploratory Data Analysis
 
-For Model 3, policy related variables will be introduced for the analytics. Policy variable "Mandate face mask use by all individuals in public spaces" (renamed as mask_public) is selected as control variable to predict the case rate. Given it has been proved that mask is effective in preventing the transmission of disease, it is expected that the mask policy mandate in public would have an effect in reducing the case rate. 
+For model 3, policy related variables will be introduced for the analytics. Policy variable "Mandate face mask use by all individuals in public spaces" (renamed as mask_public) is selected as control variable to predict the case rate. Given it has been proved that mask is effective in preventing the transmission of disease, it is expected that the mask policy mandate in public would have an effect in reducing the case rate. 
 
-There are other variables related to mask such as "No legal enforcement of face mask mandate" and "Mandate face mask use by employees in public-facing businesses", we believe these variables have a lower impact than the policy that is enforced to public. Also, it is very likely that if a state enforce public mask policy, they will by default enforce mask policy for employees in public-facing business. As a result, we believe mask policy for all individuals in public space can be used to effectively represents the policy impact. 
+There are other variables related to mask such as "No legal enforcement of face mask mandate" and "Mandate face mask use by employees in public-facing businesses", it is assume these variables have a lower impact than the policy that is enforced to public. Also, it is observed that if a state enforce public mask policy, they will by default enforce mask policy for employees in public-facing business. As a result, mask policy for all individuals in public space can be used to represent mask-related policies. 
     
-It is worth to note that, the mask_public is in date format, which has value of zero or a actual date when the policy is enforced. According to the documentation, zero represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For linear regression, the date values in mask_public column are transformed as value 1, so that we can distinguish whether states has public mask policy or not. It is also noted that by transforming the variable, some important information will be lost because the actual date (early or late) to enforce the policy can also have an impact to the case rate. However, it is difficult to measure the time effect as different states that enforced the public mask policy may depend on related situations or different thresholds.
+It is worth to note that, the mask_public is in date format, which has value of 0 or a actual date when the policy is enforced. According to the documentation, 0 represents "the absence of an order or directive", which can be interpreted as the policy is not enforced by the state explicitly. For linear regression, the date values in mask_public column are transformed as value 1, so that   whether a state has any public mask policy or not can be distinguished. It is also noted that by transforming the variable, some important information will be lost because the actual date (early or late) to enforce the policy can also have an impact on case rate. However, it is difficult to measure the effect of the timing of implementation across different states. The enforcement of public mask policy will vary across states depending on other state related features such as political factors that are not included.
 
-Firstly, "mask_public_bool" column is created from "mask_public", with 1 represents that the state has a pubic mask policy, and 0 means there's no explicit public mask policy from the state. The summary shows that there are 35 states that enforced public mask mandate, and 16 states that had no public mask policy. The ratio looks reasonable for the analysis considering sample size of 51 as there is decent number of samples for each state policy type. 
+Firstly, the mask policy (mask_public_bool) variable is created from the original variable (mask_public), with 1 representing that the state has a pubic mask policy, and 0 means there's no explicit public mask policy from the state. The summary shows that there are 35 states that enforced public mask mandate, and 16 states that had no public mask policy at the time the dataset was compiled. The ratio looks reasonable for the analysis considering sample size of 51 as there is decent number of samples for each state policy type. 
 
 ```{r}
 
@@ -417,35 +428,24 @@ df <- df %>%
       )
   )
 
-cat('Count for states that enforced mask mandate in public: ', 
+cat('Count of states that enforced mask mandate in public: ', 
     length(df$mask_public_bool[df$mask_public_bool==1]))
 
-cat('\nCount for states did not enforced mask mandate in public: ', 
+cat('\nCount of states did not enforce mask mandate in public: ', 
     length(df$mask_public_bool[df$mask_public_bool==0]))
 ```
 
-Histograms below that shows the distribution of states that has public mask policy or not. Both distributions are not very normal with relatively small skews toward both tails. 
-
-```{r, message = FALSE}
-
-hist(df$case_rate_100k[df$mask_public_bool == 1], xlab='Case Rate', ylab='Count', 
-     col='skyblue', main='Case Rate - States Enforced Mask Mandate in Public')
-hist(df$case_rate_100k[df$mask_public_bool == 0], xlab='Case Rate', ylab='Count', 
-     col='skyblue', main='Case Rate  - States Enformced No Mask Mandate in Public')
-```
-
-A plot that shows the relationship between different policies vs case rate.
+The plot below shows the relationship between the mask policy and case rate. When comparing the states that did not implement a mask policy (value = 0) and those that did (value = 1), it can be seen that the data points for those that have no policy cluster around a higher case rate range, while the data points for the states with a mask policy cluster at a lower case rate range.
 
 ```{r}
 df %>% 
-  ggplot(aes(x = mask_public_bool, y = case_rate_100k, color = case_rate_100k)) + 
-  geom_point(aes(size=case_rate_100k)) + 
+  ggplot(aes(x = mask_public_bool, y = case_rate_100k)) + 
+  geom_point(aes(size=5, alpha=0.2), show.legend = FALSE) + 
   labs(
     title = 'Case Rate vs Mask Public Mandate', 
     x = 'Mask Mandate in Public', 
-    y = 'Case Rate', 
-    color = 'Case Rate'
-  )
+    y = 'Case Rate per 100,000')  +
+  scale_x_continuous(breaks = seq(0,1,1), labels = seq(0,1,1))
 ```
 
 Next, the distribution of the population density variable is examined.
@@ -456,13 +456,13 @@ histogram_of_pdensity <- df %>%
   ggplot(aes(x = population_density)) + 
   geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
   labs(
-    title = 'Distribution of Population Density per Square Miles', 
+    title = 'Histogram of Population Density per Square Mile', 
     x = 'Population density per square mile', y = 'Count')
 
 histogram_of_pdensity
 ```
 
-As can be seen from the histogram, although most of the population density is concentrated in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is D.C. with a value of 11,496. This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Alternatively, the data point could have been dropped from the sample, but given the already small sample size, it was determined that a better approach would be to keep it within the sample. Once this transformation was performed, it is shown that there is a relatively normal distribution of population densities (see figure below).
+As can be seen from the histogram, although most of the population density clusters in the 0 to 1500 range, there are some grouping of outliers that are very far from this concentration. When an analysis is performed, it can be seen that there is only one data sample that is the outlier, which is D.C. with a value of 11,496. This is given due to the fact that D.C. is a district that solely consists of a large city, as mentioned as a possibility in the introduction. Given that this causes the data to be skewed, the logarithm is taken to scale the variable. Alternatively, the data point could have been dropped from the sample, but given the already small sample size, it was determined that a better approach would be to keep it within the sample. Once this transformation was performed, it is shown that there is a relatively normal distribution of population densities (see figure below).
 
 ```{r}
 # Find the outlier data points
@@ -478,21 +478,22 @@ histogram_of_pdensity <- df %>%
   ggplot(aes(x = l_population_density)) + 
   geom_histogram(fill = 'skyblue', color = 'grey30', bins = 20) + 
   labs(
-    title = 'Distribution of Population Density per Square Miles', 
-    x = 'Log of population density per square mile', y = 'Count')
+    title = 'Histogram of Population Density per Square Mile', 
+    x = 'Population density per square mile', y = 'Count') + 
+  scale_x_continuous(breaks = seq(0, 5, 1), labels = 10^(seq(0,5,1)))
 
 histogram_of_pdensity
 ```
 
 ### 2-3-2. Model 3 Regression
 
-Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as the maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy effects. The second variable introduced is "population_density" (the variable is transformed with log of 10 as discussed earlier) which is considered an important factor related to the spread of disease. 
+Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in Model 3 will be introduced as the maximalist approach. The first variable is the "mask_public_bool" (whether the state enforced public mask mandate or not) that represents the policy. The second variable introduced is "population_density" (the variable is transformed by the natural logarithm as discussed earlier) which is considered an important factor related to the spread of disease. 
 
-The regression coefficient shows that Mask_public_bool variable is highly significant. And the result suggests that public mask mandate policy has positive effect in bringing the case number down. In detail, the COVID-19 case rate can be reduced by 945 out of every 100k people if the state enforces public mask mandate keeping all other variables the same. 
+The regression coefficient shows that Mask_public_bool variable is highly significant. And the result suggests that public mask mandate policy has positive effect in bringing the case number down. Specifically, the COVID-19 case rate can be reduced by 945 out of every 100k people if the state enforces public mask mandate keeping all other variables the same. 
 
-The population density variable however is not significant in the regression even it is considered as one of the major factors to the spread of disease. So according to the regression, we fail to reject the null hypothesis that population density have an direct impact to the COVID-19 case rate. There could be multiple factors causing the population density to be insignificant. For example, the population density is calculated by population divided by total square miles. As a result the numbers can be diluted for states that have major cities with high population density, but very little urbanization in the majority part of the state suburb area. In addition, as stated earlier in the research, Washington, D.C. is considered as a state however the demography structure and geographical related characteristics are different from other states. And due to a small sample we have, individual variables that exhibit unique characteristics could lead to certain degree of bias.
+The population density variable however is not significant in the regression even it is considered as one of the major factors to the spread of disease. According to the regression, there is a failure to reject the null hypothesis that population density is not related to the COVID-19 case rate. There could be multiple factors causing the population density to be insignificant. For example, the population density is calculated by population divided by total square miles. As a result the numbers can be diluted for states that have major cities with high population density, but very little urbanization in the majority part of the state suburb area. In addition, as stated earlier in subsection 2-3-1 of this report, Washington, D.C. is considered as a state however the demography structure and geographical related characteristics are different from other states. And due to the small sample size, individual variables that exhibit unique characteristics could lead to a certain degree of bias.
 
-After careful discussion, the team still decided to keep "population_density" variable in model 3 even it is insignificant for the following reasons. First, adding population density variable has little effect on the change of coefficients of control variables in model 2. Second, we don't see evidence that the variable worsens the validation of CLM assumptions compared to model 2. Finally, the variable do offer meaningful information that is relevant to the main research question.
+It was decided that the "population_density" variable should be kept in model 3 even it is insignificant for the following reasons. First, adding population density variable has little effect on the change of coefficients of control variables in model 2, which helps to demonstrate the robustness of the results. Second, there is no evidence that the variable effects the validation of CLM assumptions compared to model 2. Finally, the variable offers meaningful information that is relevant to the main research question.
 
 ```{r, warning=FALSE}
 
@@ -514,31 +515,48 @@ The first assumption of IID is not detailed within this section given that it is
 #### ii. Linear Conditional Expectation
 
 
-The Residual vs Fitted chat shows a almost flat line that is close to zero, with the tails a bit skewed. There is no strong evidence that there are unincoorperated linear relationship that we are not capturing from the control variables.
-```{r}
+The residual versus fitted plot shows an almost flat line that is close to zero, with the tails a bit skewed. This implies that there are no strong linear relationships that are not captured beyond the current control variables.
 
-plot(model3, which=1)
+```{r, message = FALSE}
+
+df<- df%>% 
+  mutate(
+    model3_preds = predict(model3), 
+    model3_resids = resid(model3)
+  ) 
+df %>% 
+  ggplot(aes(model3_preds, model3_resids)) + 
+  geom_point() + 
+  stat_smooth()
 ```
 
 #### iii. No Perfect Collinearity
 
-Based on the Variance Inflation Factors check, all the variables have variance-inflation factors less than 4. As a result, there's no strong evidence of collinearity concern within the model. 
-```{r}
+First, the list of variable coefficients shows that no variables were dropped, which means there is no perfect collinearity detected by the R function. 
 
-vif(model3)>4
+```{r}
+model3$coefficients
+```
+
+
+Next, the variance inflation function was run in order to check for strong collinearity. Based on the variance inflation factors check, all the variables have variance inflation factors less than 4. As a result, there's no strong evidence of collinearity concern within the model. 
+
+```{r}
+vif(model3)
 ```
 
 #### iv. Homoskedastic Errors
 
-According to the plot of Homoskedasticity, the standardized residual falls into a reasonable range and the curve looks smooth without concerning skews. There is no significant evidence that the model violates homoskedasticity assumptions.
+According to the scale-location plot, the standardized residual falls into a reasonable range and the curve looks smooth without strong deviations. There is no significant evidence that the model violates the homoskedasticity assumption. For reference, the marked data points are New Hampshire (30), New York (33), and North Dakota (35).
+
 ```{r}
 
 plot(model3, which=3)
 
 ```
-Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity. The test result shows it fails to reject the null hypothesis, which indicates that there is no strong evidence of heteroskedasticity in model 3.
+Additionally, a Breusch-Pagan test is run to check the level of heteroskedasticity. The test result shows it fails to reject the null hypothesis, which indicates that there is no strong evidence of heteroskedasticity in model 3. 
 
-```{r, echo=FALSE}
+```{r}
 bptest(model3)
 ```
 
@@ -546,7 +564,7 @@ bptest(model3)
 
 To access the assumption of normality of error distribution, both the histogram and the Q-Q plot of the residuals is shown as follow.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r,  warning=FALSE, message=FALSE}
 plot_one <- df %>% 
   ggplot(aes(x = resid(model3))) +
   geom_histogram(fill = 'skyblue', color = 'grey30', bins=30) +
@@ -576,7 +594,7 @@ plot(model3, which=5)
 
 The most general requirement for all the linear models is that data points be independent and identically distributed (IID) which they are built off of. While for the most part the events of one state will primarily affect that single state, travel by individuals spreading the virus across state lines is an inevitable occurrence. This may cause the spread of a virus within one state to be influenced by those around it, or generally by its position in the country. In addition, all states are involved in the same market economy system of the country to varying degrees, even though there are economic performance divisions across the states. Likewise, certain regions of the country may also have similar demographics due to a shared history across general geographic regions. While this is acknowledged to occur, the effect is likely minor compared to the policy data collected state by state which would affect the spread of the virus. Therefore it is relatively safe for this assumption to be met. 
 
-The identical distribution of states as individual samples in the model is also questionable. Similar to how connections or commonalities between states make them less than truly independent, certain factors would also influence the distribution so that some states are representative of a different underlying distribution than one another. For example, if one geographic region as a whole has a factor which influences the spread of the virus differently than another, multiple underlying distributions may be present in the sample. If still a new geographic region with many states was added to the sample, and the measures of central tendency of the data continued to evolve, there would be a further indication that the underlying distribution is not identical. Without a possibility of refining the data sample however, as states would be immutable in this regard, the assumption must be made for any potential analysis. 
+The identical distribution of states as individual samples in the model is also questionable. Similar to how connections or commonalities between states make them less than truly independent, certain factors would also influence the distribution so that some states are representative of a different underlying distribution than one another. For example, if one geographic region as a whole has a factor which influences the spread of the virus differently than another, multiple underlying distributions may be present in the sample. If still a new geographic region with many states was added to the sample, and the measures of central tendency of the data continued to evolve, there would be a further indication that the underlying distribution is not identical. Without a possibility of refining the data sample however, as states would be immutable in this regard, the regression analysis proceeds with the recognition of possible violations of the IID assumption. 
 
 In examining the results of various diagnostics across different models, generally the CLM assumptions are better met as the model continues to develop. In the first model, deviations away from certain assumptions are the strongest. This is seen mostly with regards to the linear conditional expectation assumption, where the residuals against the fitted values have a noticeable inverted "V" shape as opposed to being constant around zero. In the second model, the same diagnostic shows that the assumption is better met. This is further improved upon in the third model, where local variations in the linear conditional expectation diagnostic plot are generally smoother and more centered around zero. The assumption with the greatest exception to this is that of no high collinearity within the models, as each coefficient in each model was shown to have VIF values not near the cut off value of four.
 
@@ -646,17 +664,17 @@ These effects may be included with a variable that demonstrates how much of a st
 
 # 6. Conclusion
 
-The goal of the analysis was to address the research question to examine the relationship between both the distribution of population demographics and mask-related policy of a state and the COVID-19 case rate within that states. In order to address this question, the analysis was broken up into three phases of investigation with corresponding linear models.
+The goal of the analysis was to address the research question of how the COVID-19 case rate is related to the distribution of population demographics and mask-related policy of a state. In order to address this question, the analysis was broken up into three phases of investigation with corresponding linear models.
 
- - Phase 1: To investigate the direct relationship between COVID-19 case rate and the population distribution of seniors within a state
+ - Phase 1: To investigate the direct relationship between COVID-19 case rate and the senior rate within a state
  - Phase 2: To build upon Phase 1 by including two additional variables of population demographics, poverty rate and unemployment rate, and investigating the overall effect on COVID-19 case rate
  - Phase 3: To build upon Phase 2 by adding a variable to measure the effect of the implementation of a mask-policy on COVID-19 case rate. A variable for population density was also added as an additional measure of population demographics
 
-From the three phases of investigation, there was strong evidence in the data to suggest that senior rate, unemployment rate, and mask policy are all statistically significant in relation to case rate and have a negative relationship with case rate, while poverty rate has a positive relationship. The data for population density was not statistically significant enough to suggest a relationship. Out of the four significant variables, the greatest effect was from the mask policy variable, followed by the unemployment rate, and then similar absolute effect sizes from the senior rate and povery rate.
+From the three phases of investigation, there was strong evidence in the data to suggest that senior rate, unemployment rate, and mask policy are all statistically significant in relation to case rate and have a negative relationship with case rate, while poverty rate has a positive relationship. The data for population density was not statistically significant enough to suggest a relationship. 
 
-Starting with the variable with the greatest effect size, it can be seen that the implementation of a mask policy in a state leads to a decrease of 945 cases per 100,000. Given that research from leading health organizations shows that the wearing of masks helps to decrease the chance of the transmission of COVID-19, it could be suggested that a mask policy is effective in increasing the adoption of wearing masks among the state population. Next, it can be seen that there is a decrease of roughly 1 case per 100,000 with every 3 additional people unemployed per 100,000. This suggests that as unemployment increases, the case rate decreases, which could be a result of the fact that those who are unemployed may be less mobile as they are not commuting into work, lowering the likelihood of contracting the virus. Additionally, at the time that this data was collected, the Coronavirus Aid, Relief, and Economic Security (CARES) Act was still supporting the unemployed with relief payments so there was less urgency to be out looking for work. Following unemployment, when examining the poverty variable there is actually an increase of roughly 1 case per 100,000 for every 5 additional people per 100,000 living under the federal poverty line. Although there is some intuition behind the unemployment and poverty rates having similar effects on case rate, it can be seen from the test of collinearity in the Model 2 section that these two variables are not explaining the same effects. This difference is likely due to the fact that those living below the poverty line have less access to suitable living conditions and sanitary goods that help to alleviate the possibility of COVID-19 infection. As a caveat, it should be noted that these the poverty and unemployment figures are from a 2018 survey, so it does not reflect the full picture of the state demographics at the time of when the COVID-19 related data was captured. Finally, the effect of the senior rate is negative, with an additional 4 seniors per 100,000 translating to roughly 1 fewer case per 100,000. As touched upon in the introduction, this could be largely down to the fact that it is widely broadcasted that seniors fall within the high risk category in terms of having severe complications from COVID-19, and therefore they are more diligent in the precautions they take against contracting the virus.
+Starting with the variable with the largest coefficient magnitude, it can be seen that with the implementation of a mask policy in a state there are 945 fewer cases per 100,000 compared to a state without any implementation of such policy. Given that research from leading health organizations shows that the wearing of masks helps to decrease the chance of the transmission of COVID-19, it could be suggested that a mask policy is effective in increasing the adoption of wearing masks among the state population. Next, it can be seen that there is a decrease of roughly 1 case per 100,000 with every 3 additional people unemployed per 100,000. This suggests that as unemployment increases, the case rate decreases, which could be a result of the fact that those who are unemployed may be less mobile as they are not commuting into work, lowering the likelihood of contracting the virus. Additionally, at the time that this data was collected, the Coronavirus Aid, Relief, and Economic Security (CARES) Act was still supporting the unemployed with relief payments so there was less urgency to be out looking for work. Following unemployment, when examining the poverty variable there is actually an increase of roughly 1 case per 100,000 for every 5 additional people per 100,000 living under the federal poverty line. Although there is some intuition behind the unemployment and poverty rates having similar effects on case rate, it can be seen from the test of collinearity in the Model 2 section that these two variables are not explaining the same effects. This difference is likely due to the fact that those living below the poverty line have less access to suitable living conditions and sanitary goods that help to alleviate the possibility of COVID-19 infection. As a caveat, it should be noted that these the poverty and unemployment figures are from a 2018 survey, so it does not reflect the full picture of the state demographics at the time of when the COVID-19 related data was captured. Finally, the effect of the senior rate is negative, with an additional 4 seniors per 100,000 translating to roughly 1 fewer case per 100,000. As touched upon in the introduction, this could be largely down to the fact that it is widely broadcasted that seniors fall within the high risk category in terms of having severe complications from COVID-19, and therefore they are more diligent in the precautions they take against contracting the virus.
 
-In conclusion, we see that although the population demographics had varying effects on the COVID-19 case rate, the greatest effect was seen from the mask policy. Going back to our original question, it can be suggested within the data that the effect of a mask-related policy is something that should not be neglected in comparison to the population demographics. Therefore, it seems that the COVID-19 case rate at the state-level is dependent on masks, and that ultimately, there are effective policy and control measures that can be taken by state governments that have some contribution towards combating its spread relative to factors that cannot be controlled. However, it should be noted that these insights are qualified by the assumptions and limitations laid out throughout the report, namely that there are potential issues in meeting the IID assumption and that there is explanatory information that is lost from both the variables investigated as well as the those that were not included in the dataset.
+In conclusion, going back to our original question, it can be suggested within the data that the effect of a mask-related policy is something that should not be neglected in comparison to the population demographics. Therefore, it seems that the COVID-19 case rate at the state-level is dependent on masks, and that ultimately, there are effective policy and control measures that can be taken by state governments that have some contribution towards combating its spread relative to factors that cannot be controlled. However, it should be noted that these insights are qualified by the assumptions and limitations laid out throughout the report, namely that there are potential issues in meeting the IID assumption and that there is explanatory information that is lost from both the variables investigated as well as the those that were not included in the dataset.
 
 \pagebreak
 # References
