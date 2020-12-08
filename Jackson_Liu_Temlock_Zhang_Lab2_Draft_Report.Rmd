@@ -439,25 +439,24 @@ The plot below shows the relationship between the mask policy and case rate. Whe
 
 ```{r, message=FALSE, warning=FALSE}
 df %>% 
-  ggplot(aes(x = mask_public_bool, y = case_rate_100k)) + 
+  ggplot(aes(x = factor(mask_public_bool), y = case_rate_100k)) + 
   geom_point(aes(size=5, alpha=0.2), show.legend = FALSE) + 
   labs(
     title = 'Case Rate vs Mask Public Mandate', 
     x = 'Mask Mandate in Public', 
     y = 'Case Rate per 100,000')  +
-  scale_x_continuous(breaks = seq(0,1,1), labels = seq(0,1,1))
+  scale_x_discrete(labels=c("0","1"))
 
 df %>%
-  ggplot(aes(x=mask_public_bool, y=case_rate_100k))+
-  geom_jitter(shape=21, size=6, aes( fill = factor(mask_public_bool)), width=0.1)+
-  theme(legend.position = 'none') +
+  ggplot(mapping = aes(factor(mask_public_bool), case_rate_100k))+
+  geom_jitter(shape=21, size=6, aes( fill = factor(mask_public_bool), alpha=0.5), width=0.1)+
+  theme(legend.position = "none") +
   labs(
-    title = 'Case Rate vs Mask Public Mandate',
-    x = 'Mask Mandate in Public',
-    y = 'Case Rate per 100,000',
-    color = 'Case Rate'
+    title = 'Case Rate vs Mask Public Mandate', 
+    x = 'Mask Mandate in Public', 
+    y = 'Case Rate'
   ) +
-  scale_x_continuous(breaks = seq(0,1,1), labels = seq(0,1,1))
+  scale_x_discrete(labels=c("No","Yes"))
 
 df %>%
   ggplot(aes(case_rate_100k))+
