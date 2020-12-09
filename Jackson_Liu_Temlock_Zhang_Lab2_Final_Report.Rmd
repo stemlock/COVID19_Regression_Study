@@ -12,7 +12,6 @@ nocite: '@*'
  **Initial reassignment of common variables used across models:**
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-install.packages("GGally")
 library(lmtest)
 library(sandwich)
 library(tidyverse)
@@ -22,7 +21,6 @@ library(patchwork)
 library(stargazer)
 library(tinytex)
 library(dplyr)
-library(GGally)
 library(car)
 ```
 
@@ -489,6 +487,14 @@ histogram_of_pdensity
 
 Next, the regression model for model 3 is created based on the existing work from model 2. Two additional variables discussed in model 3 will be introduced given the maximalist approach for model 3. The first variable is the "mask_public_bool" (whether the state enforced a public mask mandate or not) that represents the policy. The second variable introduced is "population_density" (the variable is transformed by the natural logarithm as discussed earlier) which is considered an important factor related to the spread of disease. 
 
+Based on the results of the data exploration above, the following equation is used to generate the regression analysis for model 3.
+
+$$
+\begin{aligned}
+ case\_rate\_100k =\beta_0 &+\beta_1senior\_per\_100k +\beta_2poverty\_per\_100k +\beta_3unemployed\_per\_100k + \beta_4mask\_public\_bool + \beta_5log(population\_density)
+\end{aligned}
+$$
+
 The regression coefficient shows that mask_public_bool variable is highly significant. The result also suggests that the public mask mandate policy has a negative relationship with the case rate. Specifically, the COVID-19 case rate decreases by 945 out of every 100,000 people if the state enforces a public mask mandate, holding all else constant. 
 
 Conversely, the population density variable is not significant in the regression even though it is considered as a major factor in stymieing the spread of the virus. According to the regression, there is a failure to reject the null hypothesis that population density is not related to the COVID-19 case rate. There could be multiple factors causing the population density to be insignificant. For example, the population density is calculated by population divided by total square miles. As a result, the numbers can be diluted for states that have major cities with high population density, but very little urbanization in the majority of the rural area. In addition, as stated earlier in subsection 2-3-1 of this report, D.C. is considered as a state despite the fact that the demographic and geographical characteristics differ from other states. And due to the small sample size, individual variables such as this that exhibit unique characteristics could lead to a certain degree of bias.
@@ -508,7 +514,7 @@ coeftest(model3)
 
 ### 2-3-3. Model 3 Limitations
 
-#### i. I.I.D Assumption
+#### i. IID Assumption
 
 The first assumption of IID is not detailed within this section given that it is evaluated more generally for all three models within section 3. 
 
@@ -603,6 +609,8 @@ However, when adding additional variables in the third model, other assumptions 
 
 In addition, with more variables in the third model, outliers appear to have more of an impact than they did previously. This is likely due to the limited sample size within the models. With less degrees of freedom in the third model, certain points can be seen to more closely approaching the boundaries of the Cook's distance plot, although they are still not extreme enough to be considered outliers. Increasing the resolution of the data, such as examining COVID-19 cases at the county or city/town level, would help to reduce this by increasing the overall degrees of freedom.
 
+Setting aside the uncertainty provided that the sample is qualified for the IID condition, all three of the models generally meet the CLM assumptions. Therefore, the coefficients generated from the regression analyses are unbiased estimates of the actual relationship investigated in this report. The uncertainty associated with these coefficients is also unbiased. Moreover, it is plausible to apply t-tests based on classical standard errors for these regression coefficients. Thus, the discussions and conclusions drawn from these regression results are assumed to be credible. However, if the dataset was more granular (e.g., case rate at the county-level rather than at the state-level), the IID assumption would be better satisfied. It would lead to greater independence for each data point relative to the rest of the data set. It would also take more advantage of the unbiased estimators so far demonstrated in the model, as a higher number of data points would produce more accurate values for the model coefficients. Overall, improving the source data would lead to greater reliability in the regression work and conclusions.
+
 # 4. Regression Table
 
 With the analysis for the selected variables, the three corresponding models, and the respective diagnostics of the CLM assumptions complete, the models can then be included for comparison in a regression table. Model 1, model 2, and model 3 are included in the regression table below,.
@@ -659,9 +667,9 @@ A variable capturing the real mask use among the population would likely reduce 
 
 ## 5-5. GDP Percentage of Tourism
 
-The economic standing of a state not only affects the individual households of its population, but also includes how it interacts with other states and how its peoples’ lives might have been economically changed by the pandemic. One way that a state may increase its number of COVID cases is both from tourists or others visiting during the pandemic and bringing disease, but also if its own population must work in close contact with others serving them in the tourism industry. In addition, if certain key industries to a state, such as tourism, layed off many workers, they would likely have to take lower paying close contact jobs such as in the service or gig economy in order to continue having a livelihood. This would further lead to a higher COVID case rate.
+The economic standing of a state not only affects the individual households of its population, but also includes how it interacts with other states and how its peoples’ lives might have been economically changed by the pandemic. One way that a state may increase its number of COVID cases is both from tourists or others visiting during the pandemic and bringing disease, but also if its own population must work in close contact with others serving them in the tourism industry. In addition, if certain key industries to a state, such as tourism, laid off many workers, they would likely have to take lower paying close-contact jobs such as in the service industry or gig economy in order to continue to have a livelihood. This would further lead to a higher COVID case rate.
 
-These effects may be included with a variable that demonstrates how much of a state’s GDP is from tourism. It would be related to other economic indicator variables, such as the “real time” poverty rate during the pandemic. Although poverty is a broader phenomena, the number of people in poverty in the pandemic could be higher due to negative growth of the tourism industry. Therefore, it is expected that states with a greater focus on tourism may also have more people in poverty in the pandemic. While poverty rate is included in the model, it is based off of data from 2018 before any pandemic related effects would have occurred. Assuming real time poverty was included in the model, a GDP percentage of tourism would take some of the explanatory power of the poverty variable away, resulting in its model coefficient becoming less positive. This would result in a positive omitted variable bias away from zero. Without a clear proxy in the dataset, and with the nature of this variable in touching on the IID assumption between interaction among states, it should be further investigated to understand a model including only poverty may be an effect of omitted variable bias. Again, because the model in this analysis uses 2018 poverty data, this would not be related to a bias from this omitted variable.
+These effects may be included with a variable that demonstrates how much of a state’s GDP is from tourism. It would be related to other economic indicator variables, such as the “real time” poverty rate during the pandemic. Although poverty is a broader phenomena, the number of people in poverty in the pandemic could be higher due to negative growth of the tourism industry. Therefore, it is expected that states with a greater focus on tourism may also have more people in poverty in the pandemic. While poverty rate is included in the model, it is based off of data from 2018 before any pandemic related effects would have occurred. Assuming real time poverty was included in the model, a GDP percentage of tourism would take some of the explanatory power of the poverty variable away, resulting in its model coefficient becoming less positive. This would result in a positive omitted variable bias away from zero. Without a clear proxy in the dataset, and with the nature of this variable touching on the IID assumption between interaction among states, it should be further investigated whether a model including only poverty may be affected by omitted variable bias. Again, because the model in this analysis uses 2018 poverty data, this would not be related to a bias from this omitted variable.
 
 # 6. Conclusion
 
