@@ -176,7 +176,12 @@ df<- df%>%
 df %>% 
   ggplot(aes(model1_preds, model1_resids)) + 
   geom_point() + 
-  stat_smooth()
+  stat_smooth() +
+  labs(
+    title = 'Model 1 Predicted vs Residuals', 
+    x = 'Residuals', 
+    y = 'Predicted'
+  )
 ```
 
 When examining the plot above for linearity in the conditional expectation, there is a noticeably slightly quadratic shape to the conditional expectation. This may suggest that the relationship between the variables may not be as linear as the model assumes. However, as discussed previously in the scatter plot of the two variables, the relationship can be approximated as roughly linear. It is also difficult to explain the complexity behind the COVID-19 case rate with just a single variable that does not fully capture the broader population demographics, so there is hope that given the addition of other input variables within models 2 and 3, the relationship within the data will be better explained and result in more linearity.
@@ -342,7 +347,12 @@ df<- df%>%
 df %>% 
   ggplot(aes(model2_preds, model2_resids)) + 
   geom_point() + 
-  stat_smooth()
+  stat_smooth() +
+  labs(
+    title = 'Model 2 Predicted vs Residuals', 
+    x = 'Residuals', 
+    y = 'Predicted'
+  )
 ```
 
 Overall, the residuals remain around zero across the predicted range. There is no assumption violation phenomenon that can be observed here. 
@@ -533,7 +543,12 @@ df<- df%>%
 df %>% 
   ggplot(aes(model3_preds, model3_resids)) + 
   geom_point() + 
-  stat_smooth()
+  stat_smooth() + 
+  labs(
+    title = 'Model 3 Predicted vs Residuals', 
+    x = 'Residuals', 
+    y = 'Predicted'
+  )
 ```
 
 #### iii. No Perfect Collinearity
