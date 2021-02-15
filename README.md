@@ -1,8 +1,8 @@
 # COVID-19 Regression Study
 
 - [Final report](Jackson_Liu_Temlock_Zhang_Lab2_Final_Report.pdf)
-- [Source code](Jackson_Liu_Temlock_Zhang_Lab2_Final_Report.Rmd)
-- [References](references.bib)
+- [Source code](src/Jackson_Liu_Temlock_Zhang_Lab2_Final_Report.Rmd)
+- [References](src/references.bib)
 
 ## Abstract
 A study of how COVID-19 case rate is dependent upon US state population demographics (inclusive of Washington D.C.) and mask-related policies using linear regression. The aim was to analyze the relationship between the COVID-19 case rate per 100,000 residents within each state (recorded between January 21, 2020 and October 30, 2020) and the population demographics features, as well as the policy decisions that were or were not put into place in order to combat the rise of COVID-19 cases. Three descriptive linear regression models were developed in an aim to answer the research question.
