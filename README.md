@@ -16,10 +16,10 @@ After the analysis, it was suggested within the data that the effect of a mask-r
 
 ## Tools Used
 
-Languages:
+#### Languages:
 - R
 
-Libraries:
+#### Libraries:
 - tidyverse
 - ggplot2
 - dplyr
